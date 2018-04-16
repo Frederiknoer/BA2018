@@ -43,10 +43,10 @@ RM = /home/fred/Documents/clion-2017.3.4/bin/cmake/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/fred/CLionProjects/vis_test
+CMAKE_SOURCE_DIR = /home/fred/Git/BA2018/vis_test
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/fred/CLionProjects/vis_test/cmake-build-debug
+CMAKE_BINARY_DIR = /home/fred/Git/BA2018/vis_test/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/vis_test.dir/depend.make
@@ -59,16 +59,16 @@ include CMakeFiles/vis_test.dir/flags.make
 
 CMakeFiles/vis_test.dir/main.cpp.o: CMakeFiles/vis_test.dir/flags.make
 CMakeFiles/vis_test.dir/main.cpp.o: ../main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/CLionProjects/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/vis_test.dir/main.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/main.cpp.o -c /home/fred/CLionProjects/vis_test/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/vis_test.dir/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/main.cpp.o -c /home/fred/Git/BA2018/vis_test/main.cpp
 
 CMakeFiles/vis_test.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vis_test.dir/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/CLionProjects/vis_test/main.cpp > CMakeFiles/vis_test.dir/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/Git/BA2018/vis_test/main.cpp > CMakeFiles/vis_test.dir/main.cpp.i
 
 CMakeFiles/vis_test.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vis_test.dir/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/CLionProjects/vis_test/main.cpp -o CMakeFiles/vis_test.dir/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/Git/BA2018/vis_test/main.cpp -o CMakeFiles/vis_test.dir/main.cpp.s
 
 CMakeFiles/vis_test.dir/main.cpp.o.requires:
 
@@ -83,16 +83,16 @@ CMakeFiles/vis_test.dir/main.cpp.o.provides.build: CMakeFiles/vis_test.dir/main.
 
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: CMakeFiles/vis_test.dir/flags.make
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: ../PclPlane.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/CLionProjects/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/vis_test.dir/PclPlane.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/PclPlane.cpp.o -c /home/fred/CLionProjects/vis_test/PclPlane.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/vis_test.dir/PclPlane.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/PclPlane.cpp.o -c /home/fred/Git/BA2018/vis_test/PclPlane.cpp
 
 CMakeFiles/vis_test.dir/PclPlane.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vis_test.dir/PclPlane.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/CLionProjects/vis_test/PclPlane.cpp > CMakeFiles/vis_test.dir/PclPlane.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/Git/BA2018/vis_test/PclPlane.cpp > CMakeFiles/vis_test.dir/PclPlane.cpp.i
 
 CMakeFiles/vis_test.dir/PclPlane.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vis_test.dir/PclPlane.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/CLionProjects/vis_test/PclPlane.cpp -o CMakeFiles/vis_test.dir/PclPlane.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/Git/BA2018/vis_test/PclPlane.cpp -o CMakeFiles/vis_test.dir/PclPlane.cpp.s
 
 CMakeFiles/vis_test.dir/PclPlane.cpp.o.requires:
 
@@ -107,16 +107,16 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o.provides.build: CMakeFiles/vis_test.dir/P
 
 CMakeFiles/vis_test.dir/rsCam.cpp.o: CMakeFiles/vis_test.dir/flags.make
 CMakeFiles/vis_test.dir/rsCam.cpp.o: ../rsCam.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/CLionProjects/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/vis_test.dir/rsCam.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/rsCam.cpp.o -c /home/fred/CLionProjects/vis_test/rsCam.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/vis_test.dir/rsCam.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/rsCam.cpp.o -c /home/fred/Git/BA2018/vis_test/rsCam.cpp
 
 CMakeFiles/vis_test.dir/rsCam.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vis_test.dir/rsCam.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/CLionProjects/vis_test/rsCam.cpp > CMakeFiles/vis_test.dir/rsCam.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/Git/BA2018/vis_test/rsCam.cpp > CMakeFiles/vis_test.dir/rsCam.cpp.i
 
 CMakeFiles/vis_test.dir/rsCam.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vis_test.dir/rsCam.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/CLionProjects/vis_test/rsCam.cpp -o CMakeFiles/vis_test.dir/rsCam.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/Git/BA2018/vis_test/rsCam.cpp -o CMakeFiles/vis_test.dir/rsCam.cpp.s
 
 CMakeFiles/vis_test.dir/rsCam.cpp.o.requires:
 
@@ -336,7 +336,7 @@ vis_test: /usr/local/lib/libvtkCommonCore-8.1.so.1
 vis_test: /usr/local/lib/libvtkfreetype-8.1.so.1
 vis_test: /usr/local/lib/libvtkzlib-8.1.so.1
 vis_test: CMakeFiles/vis_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fred/CLionProjects/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable vis_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable vis_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/vis_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -355,6 +355,6 @@ CMakeFiles/vis_test.dir/clean:
 .PHONY : CMakeFiles/vis_test.dir/clean
 
 CMakeFiles/vis_test.dir/depend:
-	cd /home/fred/CLionProjects/vis_test/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/fred/CLionProjects/vis_test /home/fred/CLionProjects/vis_test /home/fred/CLionProjects/vis_test/cmake-build-debug /home/fred/CLionProjects/vis_test/cmake-build-debug /home/fred/CLionProjects/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/fred/Git/BA2018/vis_test/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/fred/Git/BA2018/vis_test /home/fred/Git/BA2018/vis_test /home/fred/Git/BA2018/vis_test/cmake-build-debug /home/fred/Git/BA2018/vis_test/cmake-build-debug /home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/vis_test.dir/depend
 

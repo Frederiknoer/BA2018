@@ -130,6 +130,7 @@ float PclPlane::getDistToPlane(float x, float y, float z)
 
     if((distNum/distDenum) > 0.0)
         return 0.0f;
+    cout << "Distance to Plane = " << abs(distNum/distDenum) << endl;
     return abs(distNum/distDenum);
 }
 

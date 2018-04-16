@@ -6,11 +6,11 @@
 
 #IncludeRegexTransform: 
 
-/home/fred/CLionProjects/vis_test/PclPlane.cpp
+/home/fred/Git/BA2018/vis_test/PclPlane.cpp
 PclPlane.h
-/home/fred/CLionProjects/vis_test/PclPlane.h
+/home/fred/Git/BA2018/vis_test/PclPlane.h
 
-/home/fred/CLionProjects/vis_test/PclPlane.h
+/home/fred/Git/BA2018/vis_test/PclPlane.h
 iostream
 -
 boost/thread/thread.hpp
@@ -62,17 +62,17 @@ pcl/filters/radius_outlier_removal.h
 pcl/filters/conditional_removal.h
 -
 
-/home/fred/CLionProjects/vis_test/main.cpp
+/home/fred/Git/BA2018/vis_test/main.cpp
 PclPlane.h
-/home/fred/CLionProjects/vis_test/PclPlane.h
+/home/fred/Git/BA2018/vis_test/PclPlane.h
 rsCam.h
-/home/fred/CLionProjects/vis_test/rsCam.h
+/home/fred/Git/BA2018/vis_test/rsCam.h
 
-/home/fred/CLionProjects/vis_test/rsCam.cpp
+/home/fred/Git/BA2018/vis_test/rsCam.cpp
 rsCam.h
-/home/fred/CLionProjects/vis_test/rsCam.h
+/home/fred/Git/BA2018/vis_test/rsCam.h
 
-/home/fred/CLionProjects/vis_test/rsCam.h
+/home/fred/Git/BA2018/vis_test/rsCam.h
 librealsense2/rs.hpp
 -
 Eigen/SVD
