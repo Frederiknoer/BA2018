@@ -1,7 +1,14 @@
 #include "PclPlane.h"
 #include "rsCam.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv_modules.hpp>
 
-int main (int argc, char * argv[]) try
+
+using namespace cv;
+using namespace std;
+
+int main (int argc, char * argv[]) //try
 {
     int RSx = 1280, RSy = 720, fps = 30;
 
@@ -18,6 +25,8 @@ int main (int argc, char * argv[]) try
 
     PointCloud<PointXYZ>::Ptr plane_cloud (new PointCloud<PointXYZ>);
     PointCloud<PointXYZRGB>::Ptr common_cloud (new PointCloud<PointXYZRGB>);
+
+
 
 
     PCDReader reader;
@@ -61,9 +70,16 @@ int main (int argc, char * argv[]) try
     cout <<  "Cloud Width:  " << yDist << endl;
 
 
-    int imgY = ((abs(yMin))+yMax)+1;
-    int imgX = ((abs(xMin))+xMax)+1;
-    float imgCloud[imgX][imgY] = {0.0f};
+
+    int imgCol = ((abs(xMin))+xMax)+1;
+    int imgRow = ((abs(yMin))+yMax)+1;
+
+    //Create Empty Mat
+    Mat cvCloud(Size(imgRow, imgCol), CV_32FC1);
+    Mat segCloud(Size(imgRow, imgCol), CV_8UC1);
+    Mat conCloud(Size(imgRow, imgCol), CV_32FC1);
+    //Get pointer to data
+    //float* cvCloudPt = cvCloud.data;
 
     cout << "Parameters initialized.." << endl;
 
@@ -80,47 +96,78 @@ int main (int argc, char * argv[]) try
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
 
-        if(dist > 5)
-            imgCloud[row][col] = dist;
+        if(dist > 7.5)
+            cvCloud.at<float>(row,col) = dist;
+        else
+            cvCloud.at<float>(row,col) = 0.0f;
+
     }
+    //imshow("pic1", cvCloud);
+    //waitKey(0);
 
-    int blackSpots = 0;
-    int minBarrierX = imgX, maxBarrierX = 0, minBarrierY = imgY, maxBarrierY = 0;
-    for(int x = 0; x < imgX; x++)
-        for(int y = 0; y < imgY; y++)
+    threshold(cvCloud,segCloud,10.0, 255, THRESH_BINARY);
+    cout << "Thresh done" << endl;
+    vector<vector<Point>> contours;
+    findContours(segCloud, contours, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+
+    //imshow("con",conCloud);
+    //waitKey(0);
+
+    double volume = 0.0;
+    for(int x = 0; x < imgCol; x++)
+        for(int y = 0; y < imgRow; y++)
         {
-            if(imgCloud[x][y] == 0)
-                blackSpots++;
-            if(imgCloud[x][y] > 0)
-            {
-                if(x > maxBarrierX)
-                    maxBarrierX = x;
-                else if(x < minBarrierX)
-                    minBarrierX = x;
-
-                if(y > maxBarrierY)
-                    maxBarrierY = y;
-                else if(y < minBarrierY)
-                    minBarrierY = y;
-            }
+            if (segCloud.at<float>(x,y) == 65536.0)
+                volume += cvCloud.at<float>(x,y);
         }
+    cout << volume << endl;
+    imshow("pic2", segCloud);
+    waitKey(0);
+
+/*
     cout << "Black Spots before resizing: " << blackSpots << endl;
     cout << "Min x: " << minBarrierX << "  Max x: " << maxBarrierX << endl;
     cout << "Min y: " << minBarrierX << "  Max y: " << maxBarrierX << endl;
 
-    double volume = 0;
+    double volume = 0.0;
     blackSpots = 0;
+    float perimeter[8];
+    float interpolationSum = 0.0f;
+    int interpolationCounter = 0;
     for(int x = minBarrierX; x < maxBarrierX; x++)
         for(int y = minBarrierY; y < maxBarrierY; y++)
         {
             if(imgCloud[x][y] == 0)
+            {
                 blackSpots++;
+                perimeter[0] = imgCloud[x - 1][y + 1];
+                perimeter[1] = imgCloud[x][y + 1];
+                perimeter[2] = imgCloud[x + 1][y + 1];
+
+                perimeter[3] = imgCloud[x + 1][y];
+                perimeter[4] = imgCloud[x + 1][y - 1];
+                perimeter[5] = imgCloud[x][y - 1];
+
+                perimeter[6] = imgCloud[x - 1][y - 1];
+                perimeter[7] = imgCloud[x - 1][y];
+
+                for(int i = 0; i < 8; i++)
+                    if (perimeter[i] != 0)
+                    {
+                        interpolationSum += perimeter[i];
+                        interpolationCounter++;
+                    }
+                if (interpolationCounter != 0)
+                    imgCloud[x][y] = (interpolationSum / interpolationCounter);
+            }
             volume += imgCloud[x][y];
         }
     cout << "Black spots after resizing: " << blackSpots << endl;
     cout << "Volume: " << volume << endl;
+*/
     //planetest.visualizeCloud(empty_tray_cloud_f_mm);
-    //planetest.visualizeColorCloud(planetest.mergeCloudsColor(empty_tray_cloud_mm, 'r', empty_tray_cloud_f_mm, 'g'));
+    //planetest.visualizeColorCloud(planetest.mergeCloudsColor(empty_tray_cloud_f_mm, 'r', rs_box_cloud_f_mm, 'g'));
 
     //common_cloud->clear();
     //PclPlane comPlane;
@@ -129,9 +176,10 @@ int main (int argc, char * argv[]) try
     //comPlane.visualizeCloud(planetest.plane_cloud);
 
 
-    return EXIT_SUCCESS;
-}
 
+    //return EXIT_SUCCESS;
+}
+/*
 catch (const error & e)
 {
     cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << endl;
@@ -142,7 +190,7 @@ catch (const exception & e)
     cerr << e.what() << endl;
     return EXIT_FAILURE;
 }
-
+*/
 
 /*
     PclPlane rsc;

@@ -231,6 +231,11 @@ vis_test: /usr/lib/x86_64-linux-gnu/libboost_serialization.so
 vis_test: /usr/lib/x86_64-linux-gnu/libboost_chrono.so
 vis_test: /usr/lib/x86_64-linux-gnu/libboost_atomic.so
 vis_test: /usr/lib/x86_64-linux-gnu/libboost_regex.so
+vis_test: /usr/local/lib/libopencv_videostab.so.2.4.9
+vis_test: /usr/local/lib/libopencv_ts.a
+vis_test: /usr/local/lib/libopencv_superres.so.2.4.9
+vis_test: /usr/local/lib/libopencv_stitching.so.2.4.9
+vis_test: /usr/local/lib/libopencv_contrib.so.2.4.9
 vis_test: /usr/local/lib/libpcl_common.so
 vis_test: /usr/local/lib/libpcl_octree.so
 vis_test: /usr/local/lib/libpcl_io.so
@@ -335,6 +340,20 @@ vis_test: /usr/local/lib/libvtkCommonMath-8.1.so.1
 vis_test: /usr/local/lib/libvtkCommonCore-8.1.so.1
 vis_test: /usr/local/lib/libvtkfreetype-8.1.so.1
 vis_test: /usr/local/lib/libvtkzlib-8.1.so.1
+vis_test: /usr/local/lib/libopencv_nonfree.so.2.4.9
+vis_test: /usr/local/lib/libopencv_ocl.so.2.4.9
+vis_test: /usr/local/lib/libopencv_gpu.so.2.4.9
+vis_test: /usr/local/lib/libopencv_photo.so.2.4.9
+vis_test: /usr/local/lib/libopencv_objdetect.so.2.4.9
+vis_test: /usr/local/lib/libopencv_legacy.so.2.4.9
+vis_test: /usr/local/lib/libopencv_video.so.2.4.9
+vis_test: /usr/local/lib/libopencv_ml.so.2.4.9
+vis_test: /usr/local/lib/libopencv_calib3d.so.2.4.9
+vis_test: /usr/local/lib/libopencv_features2d.so.2.4.9
+vis_test: /usr/local/lib/libopencv_highgui.so.2.4.9
+vis_test: /usr/local/lib/libopencv_imgproc.so.2.4.9
+vis_test: /usr/local/lib/libopencv_flann.so.2.4.9
+vis_test: /usr/local/lib/libopencv_core.so.2.4.9
 vis_test: CMakeFiles/vis_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable vis_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/vis_test.dir/link.txt --verbose=$(VERBOSE)

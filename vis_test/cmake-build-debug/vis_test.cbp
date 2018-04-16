@@ -5,7 +5,7 @@
 		<Option title="vis_test"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\usr\local\share\pcl-1.8\;CMake Files\..\..\..\..\..\usr\local\share\pcl-1.8\Modules\;CMake Files\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\vtk-8.1\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\vtk-8.1\Modules\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\usr\local\share\pcl-1.8\;CMake Files\..\..\..\..\..\usr\local\share\pcl-1.8\Modules\;CMake Files\..\..\..\..\..\usr\local\share\OpenCV\;CMake Files\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\vtk-8.1\;CMake Files\..\..\..\..\..\usr\local\lib\cmake\vtk-8.1\Modules\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/home/fred/Git/BA2018/vis_test/cmake-build-debug"/>
@@ -55,9 +55,10 @@
 					<Add option="-DDISABLE_PNG"/>
 					<Add option="-DDISABLE_LIBUSB_1_0"/>
 					<Add directory="/usr/local/include/vtk-8.1"/>
+					<Add directory="/usr/local/include/opencv"/>
+					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/local/include/pcl-1.8"/>
 					<Add directory="/usr/include/eigen3"/>
-					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/include/c++/5"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
 					<Add directory="/usr/include/c++/5/backward"/>
@@ -91,9 +92,10 @@
 					<Add option="-DDISABLE_PNG"/>
 					<Add option="-DDISABLE_LIBUSB_1_0"/>
 					<Add directory="/usr/local/include/vtk-8.1"/>
+					<Add directory="/usr/local/include/opencv"/>
+					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/local/include/pcl-1.8"/>
 					<Add directory="/usr/include/eigen3"/>
-					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/include/c++/5"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
 					<Add directory="/usr/include/c++/5/backward"/>
@@ -145,6 +147,18 @@
 		</Unit>
 		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/share/pcl-1.8/Modules/FindQhull.cmake">
 			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\pcl-1.8\Modules\"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/share/OpenCV/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/share/OpenCV/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/share/OpenCV/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/share/OpenCV/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
 		</Unit>
 		<Unit filename="/home/fred/Git/BA2018/vis_test/../../../../../usr/local/lib/cmake/vtk-8.1/VTKConfigVersion.cmake">
 			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\lib\cmake\vtk-8.1\"/>

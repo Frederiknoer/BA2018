@@ -130,7 +130,6 @@ float PclPlane::getDistToPlane(float x, float y, float z)
 
     if((distNum/distDenum) > 0.0)
         return 0.0f;
-    cout << "Distance to Plane = " << abs(distNum/distDenum) << endl;
     return abs(distNum/distDenum);
 }
 
@@ -237,7 +236,7 @@ PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr out
     {
         int midPoint = (int)((plane_cloud->points.size())/2);
         float zLimit = plane_cloud->points[midPoint].z + 5.0f;
-        cout << "zLimit :  " << zLimit << endl;
+        //cout << "zLimit :  " << zLimit << endl;
         float x,y,z;
         for(int i = 0; i < outlier_cloud->points.size(); i++)
         {
