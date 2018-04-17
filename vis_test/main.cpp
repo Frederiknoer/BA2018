@@ -3,6 +3,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv_modules.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv/cvwimage.h>
 
 
 using namespace cv;
@@ -26,7 +28,55 @@ int main (int argc, char * argv[]) //try
     PointCloud<PointXYZ>::Ptr plane_cloud (new PointCloud<PointXYZ>);
     PointCloud<PointXYZRGB>::Ptr common_cloud (new PointCloud<PointXYZRGB>);
 
+    PclPlane rsc;
+    PointXYZ camPoint;
+    rsCam Stcam(RSx,RSy,fps);
+    Stcam.startStream();
 
+    auto rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame[i].x * 1000.0f;
+        camPoint.y = rsFrame[i].y * 1000.0f;
+        camPoint.z = rsFrame[i].z * 1000.0f;
+        empty_tray_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("empty_tray2.pcd", *empty_tray_cloud_mm);
+    //rsc.visualizeCloud(empty_tray_cloud_mm);
+    cout << "ENTET ANY KEY1 ... " << endl;
+    cin.get();
+    cout << "... " << endl;
+
+    auto rsFrame2 = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame2[i].x * 1000.0f;
+        camPoint.y = rsFrame2[i].y * 1000.0f;
+        camPoint.z = rsFrame2[i].z * 1000.0f;
+        rs_box_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("rs_box1.pcd", *rs_box_cloud_mm);
+    //rsc.visualizeCloud(rs_box_cloud_mm);
+    cout << "ENTET ANY KEY1 ... " << endl;
+    cin.get();
+    cout << "... " << endl;
+    rs_box_cloud_mm->clear();
+    auto rsFrame3 = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame3[i].x * 1000.0f;
+        camPoint.y = rsFrame3[i].y * 1000.0f;
+        camPoint.z = rsFrame3[i].z * 1000.0f;
+        rs_box_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("rs_box3.pcd", *rs_box_cloud_mm);
+
+
+
+/*
 
 
     PCDReader reader;
@@ -57,7 +107,7 @@ int main (int argc, char * argv[]) //try
     residuals = residuals/empty_tray_cloud_f_mm->points.size();
     cout << residuals << endl;
 */
-
+/*
     planetest.mergeSort(rs_box_cloud_f_mm, rs_box_cloud_f_mm->size());
     float xMin = planetest.sorted_x->points.front().x;
     float xMax = planetest.sorted_x->points.back().x;
@@ -75,7 +125,7 @@ int main (int argc, char * argv[]) //try
     int imgRow = ((abs(yMin))+yMax)+1;
 
     //Create Empty Mat
-    Mat cvCloud(Size(imgRow, imgCol), CV_32FC1);
+    Mat cvCloud(Size(imgRow, imgCol), CV_8UC1);
     Mat segCloud(Size(imgRow, imgCol), CV_8UC1);
     Mat conCloud(Size(imgRow, imgCol), CV_32FC1);
     //Get pointer to data
@@ -97,23 +147,31 @@ int main (int argc, char * argv[]) //try
         col = (int)(y+(abs(yMin)));
 
         if(dist > 7.5)
-            cvCloud.at<float>(row,col) = dist;
+            cvCloud.at<uchar>(row,col) = dist;
         else
-            cvCloud.at<float>(row,col) = 0.0f;
+            cvCloud.at<uchar>(row,col) = 0.0f;
 
     }
     //imshow("pic1", cvCloud);
     //waitKey(0);
 
     threshold(cvCloud,segCloud,10.0, 255, THRESH_BINARY);
-    cout << "Thresh done" << endl;
-    vector<vector<Point>> contours;
+    //cout << "Thresh done" << endl;
+    vector<vector<Point> > contours;
     findContours(segCloud, contours, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
-
+/*
+    vector<vector<Point> > contours_poly( contours.size() );
+    for( size_t i = 0; i < contours.size(); i++ )
+    {
+        approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+        boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+        minEnclosingCircle( contours_poly[i], center[i], radius[i] );
+    }
+*/
 
     //imshow("con",conCloud);
     //waitKey(0);
-
+/*
     double volume = 0.0;
     for(int x = 0; x < imgCol; x++)
         for(int y = 0; y < imgRow; y++)
@@ -190,38 +248,8 @@ catch (const exception & e)
     cerr << e.what() << endl;
     return EXIT_FAILURE;
 }
+
 */
-
 /*
-    PclPlane rsc;
-    PointXYZ camPoint;
-    rsCam Stcam(RSx,RSy,fps);
-    Stcam.startStream();
 
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame[i].x * 1000.0f;
-        camPoint.y = rsFrame[i].y * 1000.0f;
-        camPoint.z = rsFrame[i].z * 1000.0f;
-        empty_tray_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("empty_tray.pcd", *empty_tray_cloud_mm);
-    //rsc.visualizeCloud(empty_tray_cloud_mm);
-    cout << "ENTET ANY KEY1 ... " << endl;
-    cin.get();
-    cout << "... " << endl;
-
-    auto rsFrame2 = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame2[i].x * 1000.0f;
-        camPoint.y = rsFrame2[i].y * 1000.0f;
-        camPoint.z = rsFrame2[i].z * 1000.0f;
-        rs_box_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("rs_box.pcd", *rs_box_cloud_mm);
-    //rsc.visualizeCloud(rs_box_cloud_mm);
 */
