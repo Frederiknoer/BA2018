@@ -77,6 +77,12 @@ opencv2/highgui/highgui.hpp
 -
 opencv/cvwimage.h
 -
+opencv2/core/core.hpp
+-
+stdio.h
+-
+stdlib.h
+-
 
 /home/fred/Git/BA2018/vis_test/rsCam.cpp
 rsCam.h

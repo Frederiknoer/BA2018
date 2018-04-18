@@ -5,9 +5,12 @@
 #include <opencv2/opencv_modules.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv/cvwimage.h>
+#include <opencv2/core/core.hpp>
+#include <stdio.h>
+#include <stdlib.h>
 
 
-using namespace cv;
+//using namespace cv;
 using namespace std;
 
 int main (int argc, char * argv[]) //try
@@ -28,56 +31,6 @@ int main (int argc, char * argv[]) //try
     PointCloud<PointXYZ>::Ptr plane_cloud (new PointCloud<PointXYZ>);
     PointCloud<PointXYZRGB>::Ptr common_cloud (new PointCloud<PointXYZRGB>);
 
-    PclPlane rsc;
-    PointXYZ camPoint;
-    rsCam Stcam(RSx,RSy,fps);
-    Stcam.startStream();
-
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame[i].x * 1000.0f;
-        camPoint.y = rsFrame[i].y * 1000.0f;
-        camPoint.z = rsFrame[i].z * 1000.0f;
-        empty_tray_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("empty_tray2.pcd", *empty_tray_cloud_mm);
-    //rsc.visualizeCloud(empty_tray_cloud_mm);
-    cout << "ENTET ANY KEY1 ... " << endl;
-    cin.get();
-    cout << "... " << endl;
-
-    auto rsFrame2 = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame2[i].x * 1000.0f;
-        camPoint.y = rsFrame2[i].y * 1000.0f;
-        camPoint.z = rsFrame2[i].z * 1000.0f;
-        rs_box_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("rs_box1.pcd", *rs_box_cloud_mm);
-    //rsc.visualizeCloud(rs_box_cloud_mm);
-    cout << "ENTET ANY KEY1 ... " << endl;
-    cin.get();
-    cout << "... " << endl;
-    rs_box_cloud_mm->clear();
-    auto rsFrame3 = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame3[i].x * 1000.0f;
-        camPoint.y = rsFrame3[i].y * 1000.0f;
-        camPoint.z = rsFrame3[i].z * 1000.0f;
-        rs_box_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("rs_box3.pcd", *rs_box_cloud_mm);
-
-
-
-/*
-
 
     PCDReader reader;
     reader.read ("empty_tray.pcd", *empty_tray_cloud_mm);
@@ -92,22 +45,7 @@ int main (int argc, char * argv[]) //try
     empty_tray_cloud_f_mm = planetest.removeOutliers(empty_tray_cloud_mm, 'm');
     rs_box_cloud_f_mm = planetest.removeOutliers(rs_box_cloud_mm, 'm');
     cout << "Ouliers Gone!" << endl;
-/*
-    double residuals = 0.0;
-    for(int i = 0; i < rs_box_cloud_f_mm->points.size(); i++)
-    {
-        static float x,y,z;
-        x = rs_box_cloud_f_mm->points[i].x;
-        y = rs_box_cloud_f_mm->points[i].y;
-        z = rs_box_cloud_f_mm->points[i].z;
-        //residuals += pow(planetest.getDistToPlane(x,y,z),2);
-            cout << planetest.getDistToPlane(x,y,z) << endl;
-    }
-    residuals = sqrt(residuals);
-    residuals = residuals/empty_tray_cloud_f_mm->points.size();
-    cout << residuals << endl;
-*/
-/*
+
     planetest.mergeSort(rs_box_cloud_f_mm, rs_box_cloud_f_mm->size());
     float xMin = planetest.sorted_x->points.front().x;
     float xMax = planetest.sorted_x->points.back().x;
@@ -121,13 +59,14 @@ int main (int argc, char * argv[]) //try
 
 
 
-    int imgCol = ((abs(xMin))+xMax)+1;
-    int imgRow = ((abs(yMin))+yMax)+1;
+    int imgRow = ((abs(xMin))+xMax)+1;
+    int imgCol = ((abs(yMin))+yMax)+1;
 
     //Create Empty Mat
-    Mat cvCloud(Size(imgRow, imgCol), CV_8UC1);
-    Mat segCloud(Size(imgRow, imgCol), CV_8UC1);
-    Mat conCloud(Size(imgRow, imgCol), CV_32FC1);
+
+    cv::Mat cvCloud(imgRow, imgCol, CV_8UC1);
+    cv::Mat threshCloud(imgRow, imgCol, CV_8UC1);
+
     //Get pointer to data
     //float* cvCloudPt = cvCloud.data;
 
@@ -145,46 +84,52 @@ int main (int argc, char * argv[]) //try
         dist = planetest.getDistToPlane(x, y, z); //Distance to the plane in mm
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
-
-        if(dist > 7.5)
-            cvCloud.at<uchar>(row,col) = dist;
+        if (dist > 10)
+            cvCloud.at<uchar>(row,col) = (uchar)dist;
         else
-            cvCloud.at<uchar>(row,col) = 0.0f;
-
+            cvCloud.at<uchar>(row,col) = (uchar)0.0f;
     }
-    //imshow("pic1", cvCloud);
-    //waitKey(0);
+    cv::imshow("Raw data", cvCloud);
+    cv::waitKey(0);
 
-    threshold(cvCloud,segCloud,10.0, 255, THRESH_BINARY);
-    //cout << "Thresh done" << endl;
-    vector<vector<Point> > contours;
-    findContours(segCloud, contours, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
-/*
-    vector<vector<Point> > contours_poly( contours.size() );
+    cv::threshold(cvCloud, threshCloud, 10, 255, cv::THRESH_BINARY );
+
+    cv::imshow("Raw data", threshCloud);
+    cv::waitKey(0);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(threshCloud, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+    std::vector<vector<cv::Point> > contours_poly( contours.size() );
+    std::vector<cv::Rect> boundRect( contours.size() );
+    //std::vector<cv::Point2f> center( contours.size() );
+    vector<float>radius( contours.size() );
+
     for( size_t i = 0; i < contours.size(); i++ )
     {
-        approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
-        boundRect[i] = boundingRect( Mat(contours_poly[i]) );
-        minEnclosingCircle( contours_poly[i], center[i], radius[i] );
+        cv::approxPolyDP((contours[i]), contours_poly[i], 3, true);
+        boundRect[i] = cv::boundingRect( (contours_poly[i]) );
+        //minEnclosingCircle( contours_poly[i], center[i], radius[i] );
     }
-*/
 
-    //imshow("con",conCloud);
-    //waitKey(0);
-/*
-    double volume = 0.0;
-    for(int x = 0; x < imgCol; x++)
-        for(int y = 0; y < imgRow; y++)
-        {
-            if (segCloud.at<float>(x,y) == 65536.0)
-                volume += cvCloud.at<float>(x,y);
-        }
-    cout << volume << endl;
-    imshow("pic2", segCloud);
-    waitKey(0);
+    cv::Mat drawing ( threshCloud.size(), CV_8UC1 );
+
+    for( size_t i = 0; i< contours.size(); i++ )
+    {
+        drawContours( drawing, contours_poly, (int)i, 125, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point() );
+        rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), 125, 2, 8, 0 );
+        //circle( drawing, center[i], (int)radius[i], 125, 2, 8, 0 );
+    }
+
+    cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
+    imshow( "Contours", drawing );
+    cv::waitKey(0);
+
+
+
 
 /*
-    cout << "Black Spots before resizing: " << blackSpots << endl;
+    cout << "Black Spots blefore resizing: " << blackSpots << endl;
     cout << "Min x: " << minBarrierX << "  Max x: " << maxBarrierX << endl;
     cout << "Min y: " << minBarrierX << "  Max y: " << maxBarrierX << endl;
 
@@ -251,5 +196,49 @@ catch (const exception & e)
 
 */
 /*
+PclPlane rsc;
+    PointXYZ camPoint;
+    rsCam Stcam(RSx,RSy,fps);
+    Stcam.startStream();
 
+    auto rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame[i].x * 1000.0f;
+        camPoint.y = rsFrame[i].y * 1000.0f;
+        camPoint.z = rsFrame[i].z * 1000.0f;
+        empty_tray_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("empty_tray2.pcd", *empty_tray_cloud_mm);
+    //rsc.visualizeCloud(empty_tray_cloud_mm);
+    cout << "ENTET ANY KEY1 ... " << endl;
+    cin.get();
+    cout << "... " << endl;
+
+    auto rsFrame2 = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame2[i].x * 1000.0f;
+        camPoint.y = rsFrame2[i].y * 1000.0f;
+        camPoint.z = rsFrame2[i].z * 1000.0f;
+        rs_box_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("rs_box1.pcd", *rs_box_cloud_mm);
+    //rsc.visualizeCloud(rs_box_cloud_mm);
+    cout << "ENTET ANY KEY1 ... " << endl;
+    cin.get();
+    cout << "... " << endl;
+    rs_box_cloud_mm->clear();
+    auto rsFrame3 = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        camPoint.x = rsFrame3[i].x * 1000.0f;
+        camPoint.y = rsFrame3[i].y * 1000.0f;
+        camPoint.z = rsFrame3[i].z * 1000.0f;
+        rs_box_cloud_mm->push_back(camPoint);
+    }
+
+    io::savePCDFileASCII ("rs_box3.pcd", *rs_box_cloud_mm);
 */
