@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+#include <cmath>
 
 #include <boost/thread/thread.hpp>
 #include <pcl/common/common_headers.h>
@@ -64,12 +65,16 @@ public:
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
+	PointXYZ CalculateTrajectory(float x, float y, float z);
 
 private:
     PointXYZ* mergeSortX(PointXYZ* arr, int l, int r);
     PointXYZ* mergeX(PointXYZ* arr, int l, PointXYZ* r, int m);
     PointXYZ* mergeSortY(PointXYZ* arr, int l, int r);
     PointXYZ* mergeY(PointXYZ* arr, int l, PointXYZ* r, int m);
+
+	float ConvVel = 1000.0;		// mm per sec
+	int FrameRate = 30;			// frames per sec
 
 };
 

@@ -405,6 +405,45 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
+PointXYZ PclPlane::CalculateTrajectory(float x, float y, float z)
+{
+	PointXYZ pt;
+	pt.y = y + (ConvVel/FrameRate)*cos(atan2((sorted_y->points.front().z-sorted_y->points.back().z),(sorted_y->points.front().y-sorted_y->points.back().y)));		//er usikker på front/back
+	pt.x = x + (ConvVel/FrameRate)*sin(atan2((sorted_x->points.front().z-sorted_x->points.back().z),(sorted_x->points.front().x-sorted_x->points.back().x)));
+	pt.z = z;
+
+	cout << " for delta x: z: "<< (sorted_x->points.front().z-sorted_x->points.back().z) << " x: " << (sorted_x->points.front().x-sorted_x->points.back().x) << endl;
+
+	cout << " for delta y: z: "<< (sorted_y->points.front().z-sorted_y->points.back().z) << " y: " << (sorted_y->points.front().y-sorted_y->points.back().y) << endl;
+	cout << " x: "<< pt.x << " y: " << pt.y << " z: " << pt.z << endl; 
+	return pt;
+}
+/*int PclPlane::BSmid(PointCloud<PointXYZ>::Ptr pc , char xORy)
+{
+	int indexL = 0;
+	int indexR = pc.size()-1;
+	while(indexL < indexR)
+	{
+		int indexM = indexL + indexR/2;
+		if( xORy == 'x'){
+			if (pc->points[indexM].x < -0.1f)
+				indexL = indexM;
+			else if (pc->points[indexM].x > 0.1f)
+				indexR = indexM;
+			else
+				return indexM;
+		}
+		else if( xORy == 'y'){
+			if (pc->points[indexM].y < -0.1f)
+				indexL = indexM;
+			else if (pc->points[indexM].y > 0.1f)
+				indexR = indexM;
+			else
+				return indexM;	
+		}		
+	}
+	 throw std::runtime_error("Function BSmidX failed");
+}*/
 
 
 PclPlane::~PclPlane() {}

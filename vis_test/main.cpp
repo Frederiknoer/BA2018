@@ -1,6 +1,8 @@
 #include "PclPlane.h"
 #include "rsCam.h"
 
+
+
 int main (int argc, char * argv[]) try
 {
     int RSx = 1280, RSy = 720, fps = 30;
@@ -127,6 +129,8 @@ int main (int argc, char * argv[]) try
     //common_cloud = comPlane.mergeCloudsColor(planetest.plane_cloud,'g', org_empty_tray_cloud,'b');
     //comPlane.visualizeColorCloud(common_cloud);
     //comPlane.visualizeCloud(planetest.plane_cloud);
+	planetest.CalculateTrajectory(0.0,0.0,0.0);
+	planetest.CalculateTrajectory( 500.0,134.3,34.5);
 
 
     return EXIT_SUCCESS;
