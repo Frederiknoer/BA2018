@@ -129,11 +129,61 @@ CMakeFiles/vis_test.dir/rsCam.cpp.o.provides: CMakeFiles/vis_test.dir/rsCam.cpp.
 CMakeFiles/vis_test.dir/rsCam.cpp.o.provides.build: CMakeFiles/vis_test.dir/rsCam.cpp.o
 
 
+CMakeFiles/vis_test.dir/OpenCV.cpp.o: CMakeFiles/vis_test.dir/flags.make
+CMakeFiles/vis_test.dir/OpenCV.cpp.o: ../OpenCV.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/vis_test.dir/OpenCV.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/OpenCV.cpp.o -c /home/fred/Git/BA2018/vis_test/OpenCV.cpp
+
+CMakeFiles/vis_test.dir/OpenCV.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vis_test.dir/OpenCV.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/Git/BA2018/vis_test/OpenCV.cpp > CMakeFiles/vis_test.dir/OpenCV.cpp.i
+
+CMakeFiles/vis_test.dir/OpenCV.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vis_test.dir/OpenCV.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/Git/BA2018/vis_test/OpenCV.cpp -o CMakeFiles/vis_test.dir/OpenCV.cpp.s
+
+CMakeFiles/vis_test.dir/OpenCV.cpp.o.requires:
+
+.PHONY : CMakeFiles/vis_test.dir/OpenCV.cpp.o.requires
+
+CMakeFiles/vis_test.dir/OpenCV.cpp.o.provides: CMakeFiles/vis_test.dir/OpenCV.cpp.o.requires
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/OpenCV.cpp.o.provides.build
+.PHONY : CMakeFiles/vis_test.dir/OpenCV.cpp.o.provides
+
+CMakeFiles/vis_test.dir/OpenCV.cpp.o.provides.build: CMakeFiles/vis_test.dir/OpenCV.cpp.o
+
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.o: CMakeFiles/vis_test.dir/flags.make
+CMakeFiles/vis_test.dir/Algorithms.cpp.o: ../Algorithms.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/vis_test.dir/Algorithms.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/vis_test.dir/Algorithms.cpp.o -c /home/fred/Git/BA2018/vis_test/Algorithms.cpp
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/vis_test.dir/Algorithms.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fred/Git/BA2018/vis_test/Algorithms.cpp > CMakeFiles/vis_test.dir/Algorithms.cpp.i
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/vis_test.dir/Algorithms.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fred/Git/BA2018/vis_test/Algorithms.cpp -o CMakeFiles/vis_test.dir/Algorithms.cpp.s
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.o.requires:
+
+.PHONY : CMakeFiles/vis_test.dir/Algorithms.cpp.o.requires
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.o.provides: CMakeFiles/vis_test.dir/Algorithms.cpp.o.requires
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/Algorithms.cpp.o.provides.build
+.PHONY : CMakeFiles/vis_test.dir/Algorithms.cpp.o.provides
+
+CMakeFiles/vis_test.dir/Algorithms.cpp.o.provides.build: CMakeFiles/vis_test.dir/Algorithms.cpp.o
+
+
 # Object files for target vis_test
 vis_test_OBJECTS = \
 "CMakeFiles/vis_test.dir/main.cpp.o" \
 "CMakeFiles/vis_test.dir/PclPlane.cpp.o" \
-"CMakeFiles/vis_test.dir/rsCam.cpp.o"
+"CMakeFiles/vis_test.dir/rsCam.cpp.o" \
+"CMakeFiles/vis_test.dir/OpenCV.cpp.o" \
+"CMakeFiles/vis_test.dir/Algorithms.cpp.o"
 
 # External object files for target vis_test
 vis_test_EXTERNAL_OBJECTS =
@@ -141,6 +191,8 @@ vis_test_EXTERNAL_OBJECTS =
 vis_test: CMakeFiles/vis_test.dir/main.cpp.o
 vis_test: CMakeFiles/vis_test.dir/PclPlane.cpp.o
 vis_test: CMakeFiles/vis_test.dir/rsCam.cpp.o
+vis_test: CMakeFiles/vis_test.dir/OpenCV.cpp.o
+vis_test: CMakeFiles/vis_test.dir/Algorithms.cpp.o
 vis_test: CMakeFiles/vis_test.dir/build.make
 vis_test: /usr/lib/x86_64-linux-gnu/libboost_system.so
 vis_test: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
@@ -355,7 +407,7 @@ vis_test: /usr/local/lib/libopencv_imgproc.so.2.4.9
 vis_test: /usr/local/lib/libopencv_flann.so.2.4.9
 vis_test: /usr/local/lib/libopencv_core.so.2.4.9
 vis_test: CMakeFiles/vis_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable vis_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable vis_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/vis_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -366,6 +418,8 @@ CMakeFiles/vis_test.dir/build: vis_test
 CMakeFiles/vis_test.dir/requires: CMakeFiles/vis_test.dir/main.cpp.o.requires
 CMakeFiles/vis_test.dir/requires: CMakeFiles/vis_test.dir/PclPlane.cpp.o.requires
 CMakeFiles/vis_test.dir/requires: CMakeFiles/vis_test.dir/rsCam.cpp.o.requires
+CMakeFiles/vis_test.dir/requires: CMakeFiles/vis_test.dir/OpenCV.cpp.o.requires
+CMakeFiles/vis_test.dir/requires: CMakeFiles/vis_test.dir/Algorithms.cpp.o.requires
 
 .PHONY : CMakeFiles/vis_test.dir/requires
 

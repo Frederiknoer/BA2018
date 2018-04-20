@@ -13,6 +13,6 @@ add_definitions(${PCL_DEFINITIONS})
 
 set(DEPENDENCIES realsense2 ${Boost_LIBRARIES} ${OpenCV_LIBS})
 
-add_executable(vis_test main.cpp PclPlane.cpp PclPlane.h rsCam.cpp rsCam.h)
+add_executable(vis_test main.cpp PclPlane.cpp PclPlane.h rsCam.cpp rsCam.h OpenCV.cpp OpenCV.h Algorithms.cpp Algorithms.h)
 target_link_libraries (vis_test ${PCL_LIBRARIES} ${DEPENDENCIES})
 

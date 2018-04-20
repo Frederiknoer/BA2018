@@ -4,6 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/fred/Git/BA2018/vis_test/Algorithms.cpp" "/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/Algorithms.cpp.o"
+  "/home/fred/Git/BA2018/vis_test/OpenCV.cpp" "/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/OpenCV.cpp.o"
   "/home/fred/Git/BA2018/vis_test/PclPlane.cpp" "/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/PclPlane.cpp.o"
   "/home/fred/Git/BA2018/vis_test/main.cpp" "/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/main.cpp.o"
   "/home/fred/Git/BA2018/vis_test/rsCam.cpp" "/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir/rsCam.cpp.o"

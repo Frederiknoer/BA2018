@@ -123,6 +123,60 @@ vis_test/fast:
 	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/build
 .PHONY : vis_test/fast
 
+Algorithms.o: Algorithms.cpp.o
+
+.PHONY : Algorithms.o
+
+# target to build an object file
+Algorithms.cpp.o:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/Algorithms.cpp.o
+.PHONY : Algorithms.cpp.o
+
+Algorithms.i: Algorithms.cpp.i
+
+.PHONY : Algorithms.i
+
+# target to preprocess a source file
+Algorithms.cpp.i:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/Algorithms.cpp.i
+.PHONY : Algorithms.cpp.i
+
+Algorithms.s: Algorithms.cpp.s
+
+.PHONY : Algorithms.s
+
+# target to generate assembly for a file
+Algorithms.cpp.s:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/Algorithms.cpp.s
+.PHONY : Algorithms.cpp.s
+
+OpenCV.o: OpenCV.cpp.o
+
+.PHONY : OpenCV.o
+
+# target to build an object file
+OpenCV.cpp.o:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/OpenCV.cpp.o
+.PHONY : OpenCV.cpp.o
+
+OpenCV.i: OpenCV.cpp.i
+
+.PHONY : OpenCV.i
+
+# target to preprocess a source file
+OpenCV.cpp.i:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/OpenCV.cpp.i
+.PHONY : OpenCV.cpp.i
+
+OpenCV.s: OpenCV.cpp.s
+
+.PHONY : OpenCV.s
+
+# target to generate assembly for a file
+OpenCV.cpp.s:
+	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/OpenCV.cpp.s
+.PHONY : OpenCV.cpp.s
+
 PclPlane.o: PclPlane.cpp.o
 
 .PHONY : PclPlane.o
@@ -213,6 +267,12 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... vis_test"
+	@echo "... Algorithms.o"
+	@echo "... Algorithms.i"
+	@echo "... Algorithms.s"
+	@echo "... OpenCV.o"
+	@echo "... OpenCV.i"
+	@echo "... OpenCV.s"
 	@echo "... PclPlane.o"
 	@echo "... PclPlane.i"
 	@echo "... PclPlane.s"

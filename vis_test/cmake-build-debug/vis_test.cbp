@@ -112,6 +112,18 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/Algorithms.cpp">
+			<Option target="vis_test"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/Algorithms.h">
+			<Option target="vis_test"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/OpenCV.cpp">
+			<Option target="vis_test"/>
+		</Unit>
+		<Unit filename="/home/fred/Git/BA2018/vis_test/OpenCV.h">
+			<Option target="vis_test"/>
+		</Unit>
 		<Unit filename="/home/fred/Git/BA2018/vis_test/PclPlane.cpp">
 			<Option target="vis_test"/>
 		</Unit>
