@@ -20,12 +20,18 @@ public:
     bool startStream();
 
     const vertex* RqSingleFrame();
+
+    const void* RqSingleRGB();
     Eigen::MatrixXf RqMatrix();
     ~rsCam();
 
 private:
     pipeline* _pipe;
     rs2::config _cfg;
+
+
+    pipeline* _pipe2;
+    rs2::config _rgb;
     points _pts;
     void filtering(depth_frame& frame, int i);
 

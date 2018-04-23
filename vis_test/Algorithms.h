@@ -24,7 +24,7 @@ public:
     Algorithms();
     std::vector<pts> mergeSortX(std::vector<pts>);
     std::vector<pts> mergeSortY(std::vector<pts>);
-    std::vector<pts> removeOutliers(std::vector<pts> inputVec);
+    std::vector<pts> removeOutliers(std::vector<pts> inputVec, std::vector<float> corners, float xDisplacement, float yDisplacement);
 
     void leastSquarSVD(std::vector<pts>);
     float getDistToPlane(float x, float y, float z);

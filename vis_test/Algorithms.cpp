@@ -7,21 +7,28 @@
 
 Algorithms::Algorithms() {}
 
-std::vector<Algorithms::pts> Algorithms::removeOutliers(std::vector<pts> inputVec)
+std::vector<Algorithms::pts> Algorithms::removeOutliers(std::vector<pts> inputVec, std::vector<float> corners, float xDisplacement, float yDisplacement)
 {
     std::vector<pts> filteredVec;
     filteredVec.clear();
+
+    float minX = corners[0] - xDisplacement;
+    float maxX = corners[1] - xDisplacement;
+    float minY = corners[2] - yDisplacement;
+    float maxY = corners[3] - yDisplacement;
+
     float x,y,z;
     for(int i = 0; i < inputVec.size(); i++)
     {
         x = inputVec[i].x;
         y = inputVec[i].y;
         z = inputVec[i].z;
-        if ((x > -500 && x < 380 && y > -175 && y < 215 && z > 0))
+        if ((x > -500 && x < 380 && y > -175 && y < 215 && z > 0)) //x > minX && x < maxX && y > minY && y < maxY && z > 0
             filteredVec.push_back(inputVec[i]);
     }
     return filteredVec;
 }
+
 
 void Algorithms::leastSquarSVD(std::vector<pts> input)
 {
@@ -57,6 +64,7 @@ std::vector<Algorithms::pts> Algorithms::mergeSortX(std::vector<pts> input)
 {
     int size = input.size();
     std::vector<pts> sortedVec;
+    sortedVec.clear();
 
     pts* arr = new pts[size]();
 
@@ -75,6 +83,7 @@ std::vector<Algorithms::pts> Algorithms::mergeSortY(std::vector<pts> input)
 {
     int size = input.size();
     std::vector<pts> sortedVec;
+    sortedVec.clear();
 
     pts* arr = new pts[size]();
 

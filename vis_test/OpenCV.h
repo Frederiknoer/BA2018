@@ -18,11 +18,19 @@ class OpenCV {
 public:
 
     OpenCV();
-    void loadPlane (std::vector<Algorithms::pts>);
     void create2dDepthImage(std::vector<Algorithms::pts> inputCloud);
-    void findBoundingBox(float pointThresh);
+    void loadPlane (std::vector<Algorithms::pts>);
+    void create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud);
+    void threshold(char ThreshType, float pointThresh);
+    void findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
     double findVolumeWithinBoxes();
-    void drawBoundingBoxes(cv::Mat inputImg);
+    std::vector<float> getBoundingBoxCorners();
+
+
+    float xMin = 0.0f;
+    float xMax = 0.0f;
+    float yMin = 0.0f;
+    float yMax = 0.0f;
 
 
 
