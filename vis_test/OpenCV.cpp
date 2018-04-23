@@ -170,8 +170,8 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
         drawContours( drawing, contours_poly, (int)i, 125, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point(0,0) );
         rectangle( drawing, rectThresh[i].tl(), rectThresh[i].br(), 125, 2, 8, 0 );
     }
-    cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
-    imshow( "Contours", drawing );
+    //cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
+    //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
     cv::waitKey(0);
 
@@ -185,7 +185,7 @@ double OpenCV::findVolumeWithinBoxes()
     for(int i = 0; i < boundingBoxes.size(); i++)
     {
         volume = cv::sum(floatImage(boundingBoxes[i]))[0];
-        std::cout << "Volume for box " << i << ": " << volume << std::endl;
+        std::cout << "Volume for box " << i+1 << ": " << volume << std::endl;
         volumeSum += volume;
     }
     return volumeSum;

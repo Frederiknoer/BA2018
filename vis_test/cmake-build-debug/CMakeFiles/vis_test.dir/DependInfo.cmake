@@ -31,6 +31,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/usr/local/include/vtk-8.1"
   "/usr/local/include/opencv"
   "/usr/local/include"
+  "../NRcode"
   "/usr/local/include/pcl-1.8"
   "/usr/include/eigen3"
   )
