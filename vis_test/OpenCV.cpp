@@ -172,6 +172,7 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
     }
     cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
     imshow( "Contours", drawing );
+    //cv::imwrite("emptyTrayCon1.jpg", drawing);
     cv::waitKey(0);
 
 }
