@@ -1,5 +1,5 @@
 #include "Algorithms.h"
-//#include "PclPlane.h"
+#include "PclPlane.h"
 #include "rsCam.h"
 #include "OpenCV.h"
 #include <iostream>
@@ -20,7 +20,8 @@ int main (int argc, char * argv[]) try
     int method = 0;
     cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2) ..." << endl;
     cin >> camPlace;
-    cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV(1), Monte Carlo Integration(2)" << endl;
+    cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV 2D image projection(1), "
+            "Monte Carlo Integration(2), PCL Nearest Neighbor trapzoidal(3)" << endl;
     cin >> method;
     cout << endl;
 
@@ -64,13 +65,13 @@ int main (int argc, char * argv[]) try
         emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
         emptyTrayVec[i].z = rsFrame[i].z * 1000.0f;
     }
+    std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 0, 0);
 
     cout << "Plane estimation Done! " << endl << "Insert garments and press enter: .. " << endl;
-    //cin.get();
+    cin.get();
     for(int a = 0; a < 1000; a++)
     {
         cout << "Press Enter" << endl;
-        cin.get();
         cin.get();
         cout << "... " << endl;
         rsFrame = Stcam.RqSingleFrame();
@@ -80,12 +81,12 @@ int main (int argc, char * argv[]) try
             objVec[i].y = rsFrame[i].y * 1000.0f;
             objVec[i].z = rsFrame[i].z * 1000.0f;
         }
+        //Clear objects?
 
         switch(method)
         {
             case 0 :
             {
-                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 0, 0);
                 std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVector, 0, 0);
                 double traysum = 0.0; double objsum = 0.0;
                 for(int i = 0; i < emptyTrayVec_f.size(); i++)
@@ -110,6 +111,60 @@ int main (int argc, char * argv[]) try
             case 2 : //Monte carlo Integration
             {
                 cout << "Ha... you really thought this worked?" << endl;
+                break;
+            }
+            case 3 : //PCL nearest neighbor trapzoidal
+            {
+                PclPlane pclObj; //Static?
+
+                int K = 2;
+                int NofNeighbor;
+                PointXYZ A, B, C;
+                PointXYZ searchPoint;
+
+                std::vector<int> pointIdx(K);
+                std::vector<float> pointNKNSquaredDist(K);
+
+                KdTreeFLANN<PointXYZ> kdtree;
+                double area = 0.0;
+                double volume = 0.0;
+                double triangleHeight = 0.0;
+                static double sumVolume;
+                if(a == 0)
+                {
+                    pclObj.insertCloud(emptyTrayVec_f);
+                    pclObj.findPlane();
+                    sumVolume = 0.0;
+                }
+                PointXYZ tempPoint;
+                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVector, 0, 0);
+                PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
+                for(int i = 0; i < objVec.size(); i++)
+                {
+                    tempPoint.x = objVec_f[i].x;
+                    tempPoint.y = objVec_f[i].y;
+                    tempPoint.z = objVec_f[i].z;
+                    obj_cloud_f->push_back(tempPoint);
+                }
+                kdtree.setInputCloud(obj_cloud_f);
+
+                for(int i = 0; i < obj_cloud_f->points.size(); i++)
+                {
+                    searchPoint = obj_cloud_f->points[i];
+                    NofNeighbor = kdtree.nearestKSearch (searchPoint, K, pointIdx, pointNKNSquaredDist);
+                    if(NofNeighbor == 2)
+                    {
+                        A = searchPoint; B = obj_cloud_f->points[pointIdx[0]]; C = obj_cloud_f->points[pointIdx[1]];
+                        area = 0.5*abs((A.x - C.x)*(B.y - A.y)-(A.x - B.x)*(C.y - A.y));
+                        triangleHeight = pclObj.getDistToPlane(searchPoint.x, searchPoint.y, searchPoint.z);
+                        triangleHeight += pclObj.getDistToPlane(obj_cloud_f->points[pointIdx[0]].x, obj_cloud_f->points[pointIdx[0]].y, obj_cloud_f->points[pointIdx[0]].z);
+                        triangleHeight += pclObj.getDistToPlane(obj_cloud_f->points[pointIdx[1]].x, obj_cloud_f->points[pointIdx[1]].y, obj_cloud_f->points[pointIdx[1]].z);
+                        volume = area * (triangleHeight/3);
+                        sumVolume += volume;
+                        //DELETE POINT FROM POINT CLOUD
+                    }
+                }
+                cout << "Volume: " << sumVolume << endl;
                 break;
             }
             default :

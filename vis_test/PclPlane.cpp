@@ -15,14 +15,24 @@ PclPlane::PclPlane(PointCloud<PointXYZ>::Ptr in_cloud)
     cout << "Cloud Loaded to Class ..." << endl;
 }
 
-void PclPlane::insertCloud(PointCloud<PointXYZ>::Ptr in_cloud)
+void PclPlane::insertCloud(std::vector<Algorithms::pts> in_cloud)
 {
-    input_cloud = in_cloud;
+    PointXYZ tempPoint;
+    PointCloud<PointXYZ>::Ptr cloud_ (new PointCloud<PointXYZ>);
+    for(int i = 0; i < in_cloud.size(); i++)
+    {
+        tempPoint.x = in_cloud[i].x;
+        tempPoint.y = in_cloud[i].y;
+        tempPoint.z = in_cloud[i].z;
+        cloud_->push_back(tempPoint);
+    }
+    input_cloud = cloud_;
     cout << "Cloud Loaded to Class ..." << endl;
 }
 
 void PclPlane::findPlane()
 {
+    /*
     PointCloud<PointXYZ>::Ptr
             cloud_filtered (new PointCloud<PointXYZ>),
             cloud_p (new PointCloud<PointXYZ>),
@@ -76,7 +86,8 @@ void PclPlane::findPlane()
     }
     cout << "RANSAC Done!" << endl;
     //plane_cloud->clear();
-    plane_cloud = cloud_p;
+    */
+    plane_cloud = input_cloud;
 
     auto dataSize = (int)plane_cloud->size();
 

@@ -31,7 +31,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/conditional_removal.h>
-
+#include "Algorithms.h"
 
 using namespace std;
 using namespace pcl;
@@ -44,7 +44,7 @@ class PclPlane {
 public:
     PclPlane();
     PclPlane(PointCloud<PointXYZ>::Ptr in_cloud);
-    void insertCloud(PointCloud<PointXYZ>::Ptr);
+    void insertCloud(std::vector<Algorithms::pts> in_cloud);
 
     void findPlane();
     float getDistToPlane(float x, float y, float z);
