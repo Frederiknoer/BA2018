@@ -93,10 +93,14 @@ pcl/filters/radius_outlier_removal.h
 -
 pcl/filters/conditional_removal.h
 -
+Algorithms.h
+/home/fred/Git/BA2018/vis_test/Algorithms.h
 
 /home/fred/Git/BA2018/vis_test/main.cpp
 Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
+PclPlane.h
+/home/fred/Git/BA2018/vis_test/PclPlane.h
 rsCam.h
 /home/fred/Git/BA2018/vis_test/rsCam.h
 OpenCV.h

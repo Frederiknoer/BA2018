@@ -22,8 +22,12 @@ public:
     void loadPlane (std::vector<Algorithms::pts>);
     void create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud);
     void threshold(char ThreshType, float pointThresh);
+
     void findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
+    void findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
+
     double findVolumeWithinBoxes();
+
     std::vector<float> getBoundingBoxCorners();
 
 

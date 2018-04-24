@@ -173,7 +173,47 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
     //cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
-    cv::waitKey(0);
+    //cv::waitKey(0);
+
+}
+
+void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold)
+{
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(thresholdImage, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+    std::vector<cv::RotatedRect> minRect( contours.size() );
+    std::vector<cv::Rect> rectThresh;
+
+    for( int i = 0; i < contours.size(); i++ )
+    {
+        minRect[i] = cv::minAreaRect((contours[i]));
+
+        static double brDist = 0.0;
+        brDist = sqrt(pow((minRect[i].boundingRect().tl().x - minRect[i].boundingRect().br().x),2) +
+                              pow((minRect[i].boundingRect().tl().x - minRect[i].boundingRect().br().x),2));
+        if(brDist > lowerDiagonolThreshold && brDist < upperDiagonolThreshold)
+            rectThresh.push_back(minRect[i].boundingRect());
+    }
+
+    boundingBoxes = rectThresh;
+
+    cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
+    drawing = orgImage;
+
+    for( int i = 0; i< contours.size(); i++ )
+    {
+        drawContours( drawing, contours, i, 125, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point() );
+
+        cv::Point2f rect_points[4]; minRect[i].points( rect_points );
+        for( int j = 0; j < 4; j++ )
+            line( drawing, rect_points[j], rect_points[(j+1)%4], 125, 1, 8 );
+    }
+    //cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
+    //imshow( "Contours", drawing );
+    //cv::imwrite("emptyTrayCon1.jpg", drawing);
+    //cv::waitKey(0);
+
 
 }
 
