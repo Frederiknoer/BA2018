@@ -93,7 +93,7 @@ int main (int argc, char * argv[]) try
                     traysum += emptyTrayVec_f[i].z;
                 for(int i = 0; i < objVec_f.size(); i++)
                     objsum += objVec_f[i].z;
-                cout << "Volume: " << traysum-objsum << endl;
+                cout << "Volume: " << abs(traysum-objsum) << endl;
 
                 break;
             }
@@ -117,8 +117,8 @@ int main (int argc, char * argv[]) try
             {
                 PclPlane pclObj; //Static?
 
-                int K = 2;
-                int NofNeighbor;
+                static int K = 2;
+                static int NofNeighbor = 0;
                 PointXYZ A, B, C;
                 PointXYZ searchPoint;
 
@@ -126,9 +126,8 @@ int main (int argc, char * argv[]) try
                 std::vector<float> pointNKNSquaredDist(K);
 
                 KdTreeFLANN<PointXYZ> kdtree;
-                double area = 0.0;
-                double volume = 0.0;
-                double triangleHeight = 0.0;
+                static double area = 0.0;
+                static double volume = 0.0;
                 static double sumVolume;
                 if(a == 0)
                 {
@@ -156,12 +155,10 @@ int main (int argc, char * argv[]) try
                     {
                         A = searchPoint; B = obj_cloud_f->points[pointIdx[0]]; C = obj_cloud_f->points[pointIdx[1]];
                         area = 0.5*abs((A.x - C.x)*(B.y - A.y)-(A.x - B.x)*(C.y - A.y));
-                        triangleHeight = pclObj.getDistToPlane(searchPoint.x, searchPoint.y, searchPoint.z);
-                        triangleHeight += pclObj.getDistToPlane(obj_cloud_f->points[pointIdx[0]].x, obj_cloud_f->points[pointIdx[0]].y, obj_cloud_f->points[pointIdx[0]].z);
-                        triangleHeight += pclObj.getDistToPlane(obj_cloud_f->points[pointIdx[1]].x, obj_cloud_f->points[pointIdx[1]].y, obj_cloud_f->points[pointIdx[1]].z);
-                        volume = area * (triangleHeight/3);
+
+                        volume = area * ((pclObj.getDistToPlane(A.x, A.y, A.z) + pclObj.getDistToPlane(B.x, B.y, B.z) + pclObj.getDistToPlane(C.x, C.y, C.z))/3);
                         sumVolume += volume;
-                        //DELETE POINT FROM POINT CLOUD
+                        //ERASE POINT HERE
                     }
                 }
                 cout << "Volume: " << sumVolume << endl;
