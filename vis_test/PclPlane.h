@@ -52,7 +52,7 @@ public:
     void visualizeColorCloud(PointCloud<PointXYZRGB>::Ptr);
     void visualizePlaneCloud();
     PointCloud<PointXYZRGB>::Ptr mergeCloudsColor(PointCloud<PointXYZ>::Ptr cloud1, char color1, PointCloud<PointXYZ>::Ptr cloud2, char color2);
-    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, char);
+    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement);
     void mergeSort(PointCloud<PointXYZ>::Ptr,int size);
 
 

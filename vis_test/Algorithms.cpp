@@ -23,7 +23,7 @@ std::vector<Algorithms::pts> Algorithms::removeOutliers(std::vector<pts> inputVe
         x = inputVec[i].x;
         y = inputVec[i].y;
         z = inputVec[i].z;
-        if ((x > -500 && x < 380 && y > -175 && y < 215 && z > 0)) //x > minX && x < maxX && y > minY && y < maxY && z > 0
+        if ((x > minX && x < maxX && y > minY && y < maxY && z > 0)) //x > -500 && x < 380 && y > -175 && y < 215 && z > 0
             filteredVec.push_back(inputVec[i]);
     }
     return filteredVec;

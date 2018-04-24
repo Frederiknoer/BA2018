@@ -209,54 +209,25 @@ PointCloud<PointXYZRGB>::Ptr PclPlane::mergeCloudsColor(PointCloud<PointXYZ>::Pt
 
 }
 
-PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, char in)
+PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement)
 {
     PointCloud<PointXYZ>::Ptr cloud_filtered (new PointCloud<PointXYZ>);
 
     cloud_filtered->clear();
-    if (in == 's')
-    {
-        cout << "Statistical removal" << endl;
-        StatisticalOutlierRemoval<PointXYZ> sor;
-        sor.setInputCloud (outlier_cloud);
-        sor.setMeanK (50);
-        sor.setStddevMulThresh (1.0);
-        sor.filter (*cloud_filtered);
-    }
-    else if (in == 'c')
-    {
-        cout << "Conditional removal" << endl;
-        // build the condition
-        ConditionAnd<PointXYZ>::Ptr range_cond(new ConditionAnd<PointXYZ>());
 
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("x", ComparisonOps::GT, -0.50)));
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("x", ComparisonOps::LT, 0.38)));
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("y", ComparisonOps::GT, -0.175))); //good
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("y", ComparisonOps::LT, 0.215))); //21
-        //range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("z", ComparisonOps::LT, zLimit)));
+    float minX = corners[0] - xDisplacement;
+    float maxX = corners[1] - xDisplacement;
+    float minY = corners[2] - yDisplacement;
+    float maxY = corners[3] - yDisplacement;
 
-        // build the filter
-        ConditionalRemoval<PointXYZ> condrem;
-        condrem.setCondition(range_cond);
-        condrem.setInputCloud(outlier_cloud);
-        condrem.setKeepOrganized(true);
-        // apply filter
-        condrem.filter(*cloud_filtered);
-    }
-    else if (in == 'm')
+    float x,y,z;
+    for(int i = 0; i < outlier_cloud->points.size(); i++)
     {
-        int midPoint = (int)((plane_cloud->points.size())/2);
-        float zLimit = plane_cloud->points[midPoint].z + 5.0f;
-        //cout << "zLimit :  " << zLimit << endl;
-        float x,y,z;
-        for(int i = 0; i < outlier_cloud->points.size(); i++)
-        {
-            x = outlier_cloud->points[i].x;
-            y = outlier_cloud->points[i].y;
-            z = outlier_cloud->points[i].z;
-            if ((x > -500 && x < 380 && y > -175 && y < 215 && z > 0))
-                cloud_filtered->push_back(outlier_cloud->points[i]);
-        }
+        x = outlier_cloud->points[i].x;
+        y = outlier_cloud->points[i].y;
+        z = outlier_cloud->points[i].z;
+        if ((x > minX && x < maxX && y > minY && y < maxY && z > 0)) //x > -500 && x < 380 && y > -175 && y < 215 && z > 0
+            cloud_filtered->points.push_back(outlier_cloud->points[i]);
     }
     return cloud_filtered;
 }
