@@ -7,13 +7,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <pthread.h>
+#include "threadCom.h"
 
 
 using namespace std;
 
 #define RSx 1280
 #define RSy 720
-#define fps 6
+#define fps 15
 
 static SafeQueue sq;
 
@@ -45,6 +46,12 @@ void volumeEstimate()
 
     while(sq.queueEmpty);
     auto rsFrame = sq.pull();
+    while(true)
+    {
+        if (rsFrame != nullptr)
+            break;
+        rsFrame = sq.pull();
+    }
     cout << "Pulled" << endl;
     for(int i = 0; i < (RSx*RSy); i ++)
     {
@@ -67,17 +74,23 @@ void volumeEstimate()
     if(outlierVector.size() > 4)
         cout << "bad WS" << endl;
     cout << "X dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   Y dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
-    outlierVector[0] = outlierVector[0] + 15; //x
-    outlierVector[1] = outlierVector[1] + 25; //y
-    outlierVector[2] = outlierVector[2] - 15; //x
-    outlierVector[3] = outlierVector[3] - 250; //y
+    //outlierVector[0] = outlierVector[0] + 15; //x
+    //outlierVector[1] = outlierVector[1] + 25; //y
+    //outlierVector[2] = outlierVector[2] - 15; //x
+    //outlierVector[3] = outlierVector[3] - 250; //y
 
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
 
     while(sq.queueEmpty);
     rsFrame = sq.pull();
-    for(int i = 0; i < (RSx*RSy); i ++)
+    while(true)
+    {
+        if (rsFrame != nullptr)
+            break;
+        rsFrame = sq.pull();
+    }
+    for(int i = 0; i < (RSx*RSy); i++)
     {
         emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
         emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
@@ -95,6 +108,12 @@ void volumeEstimate()
 
         while(sq.queueEmpty);
         rsFrame = sq.pull();
+        while(true)
+        {
+            if (rsFrame != nullptr)
+                break;
+            rsFrame = sq.pull();
+        }
         for(int i = 0; i < (RSx*RSy); i ++)
         {
             objVec[i].x = rsFrame[i].x * 1000.0f;
@@ -271,10 +290,17 @@ void getFrames()
 {
     rsCam Stcam(RSx,RSy,fps);
     Stcam.startStream();
+    bool c;
     while (true)
     {
         auto rsFrame = Stcam.RqSingleFrame();
-        sq.push(rsFrame);
+        while(true)
+        {
+            c = sq.push(rsFrame);
+            if(c) break;
+        }
+
+
     }
 
 
@@ -282,14 +308,31 @@ void getFrames()
 
 int main (int argc, char * argv[]) try
 {
-    /*
+
     std::thread cam(getFrames);
     std::thread vol(volumeEstimate);
 
     cam.join();
     vol.join();
-     */
-    pcl::PointCloud<pcl::PointXYZ>::Ptr trayCloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+
+
+    return EXIT_SUCCESS;
+}
+
+catch (const error & e)
+{
+    cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << endl;
+    return EXIT_FAILURE;
+}
+catch (const exception & e)
+{
+    cerr << e.what() << endl;
+    return EXIT_FAILURE;
+}
+
+/*
+pcl::PointCloud<pcl::PointXYZ>::Ptr trayCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud2 (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointXYZ tempPoint;
@@ -331,21 +374,4 @@ int main (int argc, char * argv[]) try
     objCloud2->resize(RSy*RSx);
     pcl::io::savePCDFileASCII ("disttest2.pcd", *objCloud2);
     test.visualizeCloud(objCloud2);
-
-    return EXIT_SUCCESS;
-}
-
-catch (const error & e)
-{
-    cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << endl;
-    return EXIT_FAILURE;
-}
-catch (const exception & e)
-{
-    cerr << e.what() << endl;
-    return EXIT_FAILURE;
-}
-
-/*
-
 */

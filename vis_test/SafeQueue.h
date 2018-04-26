@@ -9,17 +9,20 @@ class SafeQueue
 {
 public:
     SafeQueue() {};
-    void push(const rs2::vertex * frame)
+    bool push(const rs2::vertex * frame)
     {
         if(!mutex)
         {
             mutex = true;
-            frameQueue.push_back(frame);
+            frameQueue.push(frame);
             queueEmpty = false;
             if (frameQueue.empty())
                 queueEmpty = true;
             mutex = false;
+            return true;
         }
+        else
+            return false;
     };
 
     const rs2::vertex * pull()
@@ -28,19 +31,21 @@ public:
         {
             mutex = true;
             const rs2::vertex *temp;
-            temp = frameQueue[0];
-            frameQueue.erase(frameQueue.begin());
+            temp = frameQueue.front();
+            frameQueue.pop();
             if (frameQueue.empty())
                 queueEmpty = true;
             mutex = false;
             return temp;
         }
+        else
+            return nullptr;
     };
 
 
     bool queueEmpty = true;
 private:
-    std::vector<const rs2::vertex *> frameQueue = {};
+    std::queue<const rs2::vertex *> frameQueue;
     bool mutex = false;
 
 };
