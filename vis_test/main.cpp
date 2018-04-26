@@ -49,7 +49,6 @@ PointXYZ tempPoint;
 	std::cin.get();
 	float vel = 576.3f/fps;
 	//PointXYZ tempPoint;
-cout << planetest.nX[0] << " - " << planetest.nX[1] <<" - " <<planetest.nX[2] << endl;
 	for (int i = 0; i < 6;i++)
 	{	
 		cout << "Frame: " << i << endl;
@@ -58,14 +57,13 @@ cout << planetest.nX[0] << " - " << planetest.nX[1] <<" - " <<planetest.nX[2] <<
 		{
 		//cout << rsFrame[j].x*1000.0f*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2]) << endl;
 			if (planetest.getDistToPlane(rsFrame[j].x,rsFrame[j].y,rsFrame[j].z) > 10.0)
-				//multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),rsFrame[j].z*1000.0*(planetest.nZ[0]+planetest.nZ[1]+planetest.nZ[2])));	//Kan være z skal være distance to plane i stedet.
-				multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),planetest.getDistToPlane(rsFrame[j].x*1000,rsFrame[j].y*1000,rsFrame[j].z*1000)));
+				multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),rsFrame[j].z*1000.0*(planetest.nZ[0]+planetest.nZ[1]+planetest.nZ[2])));	//Kan være z skal være distance to plane i stedet.
+				//multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),planetest.getDistToPlane(rsFrame[j].x*1000,rsFrame[j].y*1000,rsFrame[j].z*1000)));
 		}
 	}
 	std::vector<float> corners = {-200.0f,-200.0f,400.0f,150.0f};
-cout << multi_cloud->size() << endl;
 	multi_cloud_f = planetest.removeOutliers(multi_cloud,corners,0.0f,0.0f );
-	//planetest.visualizeCloud(dense_cloud)
+	planetest.visualizeCloud(multi_cloud);
 	/*PclPlane comPlane;
     common_cloud = comPlane.mergeCloudsColor(multi_cloud,'r', empty_tray_cloud,'b');
 	comPlane.visualizeColorCloud(common_cloud);*/
@@ -73,7 +71,7 @@ cout << multi_cloud->size() << endl;
 	multi_cloud_f->resize(multi_cloud_f->size());
 	pcl::io::savePCDFileASCII ("multi_cloud.pcd", *multi_cloud_f);
 	/*cout << "AAAAAAAAAAAARRRRRRRH" << endl;
-for (int i = 0; i < 30 ; i++){
+	for (int i = 0; i < 30 ; i++){
 	cout << 1337*i << endl;
 	cout << " X: " << planetest.plane_cloud->points[1337*i].x << " y: " << planetest.plane_cloud->points[1337*i].y << " Z: " << planetest.plane_cloud->points[1337*i].z << endl;
 	cout << "Dist to plane" << planetest.getDistToPlane(planetest.plane_cloud->points[1337*i].x,planetest.plane_cloud->points[1337*i].y,planetest.plane_cloud->points[1337*i].z) << endl;
