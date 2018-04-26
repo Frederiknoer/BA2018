@@ -407,6 +407,11 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o
  /usr/local/include/pcl-1.8/pcl/search/search.h
  /usr/local/include/pcl-1.8/pcl/segmentation/impl/sac_segmentation.hpp
  /usr/local/include/pcl-1.8/pcl/segmentation/sac_segmentation.h
+ /usr/local/include/pcl-1.8/pcl/surface/boost.h
+ /usr/local/include/pcl-1.8/pcl/surface/gp3.h
+ /usr/local/include/pcl-1.8/pcl/surface/impl/gp3.hpp
+ /usr/local/include/pcl-1.8/pcl/surface/impl/reconstruction.hpp
+ /usr/local/include/pcl-1.8/pcl/surface/reconstruction.h
  /usr/local/include/pcl-1.8/pcl/visualization/area_picking_event.h
  /usr/local/include/pcl-1.8/pcl/visualization/boost.h
  /usr/local/include/pcl-1.8/pcl/visualization/cloud_viewer.h
@@ -970,6 +975,11 @@ CMakeFiles/vis_test.dir/main.cpp.o
  /usr/local/include/pcl-1.8/pcl/search/search.h
  /usr/local/include/pcl-1.8/pcl/segmentation/impl/sac_segmentation.hpp
  /usr/local/include/pcl-1.8/pcl/segmentation/sac_segmentation.h
+ /usr/local/include/pcl-1.8/pcl/surface/boost.h
+ /usr/local/include/pcl-1.8/pcl/surface/gp3.h
+ /usr/local/include/pcl-1.8/pcl/surface/impl/gp3.hpp
+ /usr/local/include/pcl-1.8/pcl/surface/impl/reconstruction.hpp
+ /usr/local/include/pcl-1.8/pcl/surface/reconstruction.h
  /usr/local/include/pcl-1.8/pcl/visualization/area_picking_event.h
  /usr/local/include/pcl-1.8/pcl/visualization/boost.h
  /usr/local/include/pcl-1.8/pcl/visualization/cloud_viewer.h

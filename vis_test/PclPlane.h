@@ -31,6 +31,10 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/conditional_removal.h>
+
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+
 #include "Algorithms.h"
 
 using namespace std;

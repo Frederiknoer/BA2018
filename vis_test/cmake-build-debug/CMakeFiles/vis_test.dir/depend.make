@@ -406,6 +406,11 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/search/pc
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/search/search.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/segmentation/impl/sac_segmentation.hpp
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/segmentation/sac_segmentation.h
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/boost.h
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/gp3.h
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/impl/gp3.hpp
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/impl/reconstruction.hpp
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/reconstruction.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/area_picking_event.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/boost.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/cloud_viewer.h
@@ -969,6 +974,11 @@ CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/search/pcl_se
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/search/search.h
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/segmentation/impl/sac_segmentation.hpp
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/segmentation/sac_segmentation.h
+CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/boost.h
+CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/gp3.h
+CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/impl/gp3.hpp
+CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/impl/reconstruction.hpp
+CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/surface/reconstruction.h
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/area_picking_event.h
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/boost.h
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/local/include/pcl-1.8/pcl/visualization/cloud_viewer.h

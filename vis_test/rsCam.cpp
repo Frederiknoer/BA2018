@@ -16,7 +16,7 @@ rsCam::rsCam(int x, int y, int fps)
     }
     //config cfg;
     _cfg.enable_stream(RS2_STREAM_DEPTH,x,y,RS2_FORMAT_Z16,fps);
-    _rgb.enable_stream(RS2_STREAM_COLOR,1280,720,RS2_FORMAT_RGB8,fps);
+    //_rgb.enable_stream(RS2_STREAM_COLOR,1280,720,RS2_FORMAT_RGB8,fps);
     auto depth_sens = dev.first<depth_sensor>();
     depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
 
@@ -26,10 +26,10 @@ rsCam::rsCam(int x, int y, int fps)
 }
 bool rsCam::startStream()
 {
-    _pipe2->start(_rgb);
+    //_pipe2->start(_rgb);
     _pipe->start(_cfg);
     for (int i = 0; i < 30; i++)_pipe->wait_for_frames();
-    for (int i = 0; i < 30; i++)_pipe2->wait_for_frames();
+    //for (int i = 0; i < 30; i++)_pipe2->wait_for_frames();
     return true;
 }
 const rs2::vertex* rsCam::RqSingleFrame()
