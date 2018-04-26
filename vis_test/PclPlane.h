@@ -60,8 +60,8 @@ public:
 
 
     ~PclPlane();
-    PointCloud<PointXYZ>::Ptr input_cloud = {0};
-    PointCloud<PointXYZ>::Ptr plane_cloud = {0};
+    PointCloud<PointXYZ>::Ptr input_cloud = {};
+    PointCloud<PointXYZ>::Ptr plane_cloud = {};
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};

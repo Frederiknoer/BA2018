@@ -24,7 +24,7 @@ int main (int argc, char * argv[]) try
 
     PCDReader reader;
     reader.read ("empty_tray.pcd", *empty_tray_cloud_mm);
-    reader.read ("rs_box.pcd", *rs_box_cloud_mm);
+    //reader.read ("rs_box.pcd", *rs_box_cloud_mm);
     //reader.read ("odriod_box.pcd", *odroid_box_cloud);
     cout << "PCD reader done!" << endl;
 
@@ -32,6 +32,12 @@ int main (int argc, char * argv[]) try
     planetest.insertCloud(empty_tray_cloud_mm);
     planetest.findPlane();
 
+	cout << "AAAAAAAAAAAARRRRRRRH" << endl;
+for (int i = 0; i < 30 ; i++){
+	cout << 1337*i << endl;
+	cout << " X: " << planetest.plane_cloud->points[1337*i].x << " y: " << planetest.plane_cloud->points[1337*i].y << " Z: " << planetest.plane_cloud->points[1337*i].z << endl;
+	cout << "Dist to plane" << planetest.getDistToPlane(planetest.plane_cloud->points[1337*i].x,planetest.plane_cloud->points[1337*i].y,planetest.plane_cloud->points[1337*i].z) << endl;
+	}
     empty_tray_cloud_f_mm = planetest.removeOutliers(empty_tray_cloud_mm, 'm');
     rs_box_cloud_f_mm = planetest.removeOutliers(rs_box_cloud_mm, 'm');
     cout << "Ouliers Gone!" << endl;
@@ -51,7 +57,7 @@ int main (int argc, char * argv[]) try
     cout << residuals << endl;
 */
 
-    planetest.mergeSort(rs_box_cloud_f_mm, rs_box_cloud_f_mm->size());
+   /* planetest.mergeSort(rs_box_cloud_f_mm, rs_box_cloud_f_mm->size());
     float xMin = planetest.sorted_x->points.front().x;
     float xMax = planetest.sorted_x->points.back().x;
     float yMin = planetest.sorted_y->points.front().y;
@@ -119,6 +125,7 @@ int main (int argc, char * argv[]) try
                 blackSpots++;
             volume += imgCloud[x][y];
         }
+
     cout << "Black spots after resizing: " << blackSpots << endl;
     cout << "Volume: " << volume << endl;
     //planetest.visualizeCloud(empty_tray_cloud_f_mm);
@@ -132,7 +139,7 @@ int main (int argc, char * argv[]) try
 	planetest.CalculateTrajectory(0.0,0.0,0.0);
 	planetest.CalculateTrajectory( 500.0,134.3,34.5);
 
-
+*/
     return EXIT_SUCCESS;
 }
 
