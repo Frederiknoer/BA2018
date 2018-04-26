@@ -34,7 +34,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     const vertex* list;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            filtering(depth, 10);
+            //filtering(depth, 10);
             pointcloud pc;
             _pts = pc.calculate(depth);
             list = _pts.get_vertices();

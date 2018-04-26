@@ -5,34 +5,74 @@
 
 int main (int argc, char * argv[]) try
 {
-    int RSx = 1280, RSy = 720, fps = 30;
+    int RSx = 640, RSy = 480, fps = 6;
 
     //PointCloud<PointXYZ>::Ptr empty_tray_cloud (new PointCloud<PointXYZ>);
-    PointCloud<PointXYZ>::Ptr empty_tray_cloud_mm (new PointCloud<PointXYZ>);
+    PointCloud<PointXYZ>::Ptr empty_tray_cloud (new PointCloud<PointXYZ>);
     PointCloud<PointXYZ>::Ptr empty_tray_cloud_f_mm (new PointCloud<PointXYZ>);
 
     //PointCloud<PointXYZ>::Ptr rs_box_cloud (new PointCloud<PointXYZ>);
-    PointCloud<PointXYZ>::Ptr rs_box_cloud_mm (new PointCloud<PointXYZ>);
-    PointCloud<PointXYZ>::Ptr rs_box_cloud_f_mm (new PointCloud<PointXYZ>);
-
+    
     //PointCloud<PointXYZ>::Ptr odroid_box_cloud (new PointCloud<PointXYZ>);
     //PointCloud<PointXYZ>::Ptr odroid_box_cloud_f (new PointCloud<PointXYZ>);
 
-    PointCloud<PointXYZ>::Ptr plane_cloud (new PointCloud<PointXYZ>);
+    PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
+
+    PointCloud<PointXYZ>::Ptr multi_cloud_f (new PointCloud<PointXYZ>);
     PointCloud<PointXYZRGB>::Ptr common_cloud (new PointCloud<PointXYZRGB>);
 
 
-    PCDReader reader;
-    reader.read ("empty_tray.pcd", *empty_tray_cloud_mm);
+    //PCDReader reader;
+    //reader.read ("disttest0.pcd", *empty_tray_cloud_mm);
     //reader.read ("rs_box.pcd", *rs_box_cloud_mm);
     //reader.read ("odriod_box.pcd", *odroid_box_cloud);
-    cout << "PCD reader done!" << endl;
-
-    PclPlane planetest;
-    planetest.insertCloud(empty_tray_cloud_mm);
+  
+	rsCam Stcam(RSx,RSy,fps);
+	Stcam.startStream();
+	auto rsFrame1 = Stcam.RqSingleFrame();
+cout << "hej" << endl;
+PointXYZ tempPoint;
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame1[i].x * 1000.0f;
+        tempPoint.y = rsFrame1[i].y * 1000.0f;
+        tempPoint.z = rsFrame1[i].z * 1000.0f;
+		empty_tray_cloud->push_back(tempPoint);
+    }
+	 cout << "Empty Tray frame taken" << endl;
+    PclPlane planetest(empty_tray_cloud);
+	 cout << "Finding Plane" << endl;
     planetest.findPlane();
+	
+	std::cout << "Press enter to continue" << std::endl;
 
-	cout << "AAAAAAAAAAAARRRRRRRH" << endl;
+	std::cin.get();
+	float vel = 576.3f/fps;
+	//PointXYZ tempPoint;
+cout << planetest.nX[0] << " - " << planetest.nX[1] <<" - " <<planetest.nX[2] << endl;
+	for (int i = 0; i < 6;i++)
+	{	
+		cout << "Frame: " << i << endl;
+		auto rsFrame = Stcam.RqSingleFrame();
+		for(int j = 0; j < (RSx*RSy); j++)
+		{
+		//cout << rsFrame[j].x*1000.0f*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2]) << endl;
+			if (planetest.getDistToPlane(rsFrame[j].x,rsFrame[j].y,rsFrame[j].z) > 10.0)
+				//multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),rsFrame[j].z*1000.0*(planetest.nZ[0]+planetest.nZ[1]+planetest.nZ[2])));	//Kan være z skal være distance to plane i stedet.
+				multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),planetest.getDistToPlane(rsFrame[j].x*1000,rsFrame[j].y*1000,rsFrame[j].z*1000)));
+		}
+	}
+	std::vector<float> corners = {-200.0f,-200.0f,400.0f,150.0f};
+cout << multi_cloud->size() << endl;
+	multi_cloud_f = planetest.removeOutliers(multi_cloud,corners,0.0f,0.0f );
+	//planetest.visualizeCloud(dense_cloud)
+	/*PclPlane comPlane;
+    common_cloud = comPlane.mergeCloudsColor(multi_cloud,'r', empty_tray_cloud,'b');
+	comPlane.visualizeColorCloud(common_cloud);*/
+	cout << multi_cloud_f->size() << endl;
+	multi_cloud_f->resize(multi_cloud_f->size());
+	pcl::io::savePCDFileASCII ("multi_cloud.pcd", *multi_cloud_f);
+	/*cout << "AAAAAAAAAAAARRRRRRRH" << endl;
 for (int i = 0; i < 30 ; i++){
 	cout << 1337*i << endl;
 	cout << " X: " << planetest.plane_cloud->points[1337*i].x << " y: " << planetest.plane_cloud->points[1337*i].y << " Z: " << planetest.plane_cloud->points[1337*i].z << endl;
@@ -40,7 +80,7 @@ for (int i = 0; i < 30 ; i++){
 	}
     empty_tray_cloud_f_mm = planetest.removeOutliers(empty_tray_cloud_mm, 'm');
     rs_box_cloud_f_mm = planetest.removeOutliers(rs_box_cloud_mm, 'm');
-    cout << "Ouliers Gone!" << endl;
+    cout << "Ouliers Gone!" << endl;*/
 /*
     double residuals = 0.0;
     for(int i = 0; i < rs_box_cloud_f_mm->points.size(); i++)
@@ -153,38 +193,3 @@ catch (const exception & e)
     cerr << e.what() << endl;
     return EXIT_FAILURE;
 }
-
-
-/*
-    PclPlane rsc;
-    PointXYZ camPoint;
-    rsCam Stcam(RSx,RSy,fps);
-    Stcam.startStream();
-
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame[i].x * 1000.0f;
-        camPoint.y = rsFrame[i].y * 1000.0f;
-        camPoint.z = rsFrame[i].z * 1000.0f;
-        empty_tray_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("empty_tray.pcd", *empty_tray_cloud_mm);
-    //rsc.visualizeCloud(empty_tray_cloud_mm);
-    cout << "ENTET ANY KEY1 ... " << endl;
-    cin.get();
-    cout << "... " << endl;
-
-    auto rsFrame2 = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        camPoint.x = rsFrame2[i].x * 1000.0f;
-        camPoint.y = rsFrame2[i].y * 1000.0f;
-        camPoint.z = rsFrame2[i].z * 1000.0f;
-        rs_box_cloud_mm->push_back(camPoint);
-    }
-
-    io::savePCDFileASCII ("rs_box.pcd", *rs_box_cloud_mm);
-    //rsc.visualizeCloud(rs_box_cloud_mm);
-*/

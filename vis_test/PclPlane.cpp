@@ -15,14 +15,35 @@ PclPlane::PclPlane(PointCloud<PointXYZ>::Ptr in_cloud)
     cout << "Cloud Loaded to Class ..." << endl;
 }
 
-void PclPlane::insertCloud(PointCloud<PointXYZ>::Ptr in_cloud)
+void PclPlane::insertCloud(std::vector<Algorithms::pts> in_cloud)
 {
-    input_cloud = in_cloud;
+    PointXYZ tempPoint;
+    PointCloud<PointXYZ>::Ptr cloud_ (new PointCloud<PointXYZ>);
+    for(int i = 0; i < in_cloud.size(); i++)
+    {
+        tempPoint.x = in_cloud[i].x*(nX[0]+nX[1]+nX[2]);
+        tempPoint.y = in_cloud[i].y*(nY[0]+nY[1]+nY[2]);
+        tempPoint.z = in_cloud[i].z*(nZ[0]+nZ[1]+nZ[2]);
+        cloud_->push_back(tempPoint);
+    }
+    input_cloud = cloud_;
     cout << "Cloud Loaded to Class ..." << endl;
 }
-
+/*void PclPlane::projectCloud()
+{
+	for (int i = 0; i < frm.size(); i++)
+	{
+		/*proj_cloud->Points[i].x = input_cloud->Points[i].x*(nX[0]+nX[1]+nX[2]);
+		proj_cloud->Points[i].y = input_cloud->Points[i].y*(nY[0]+nY[1]+nY[2]);
+		proj_cloud->Points[i].z = input_cloud->Points[i].z*(nZ[0]+nZ[1]+nZ[2]);*/
+		/*proj_cloud->points[i].x = frame[i].x*(nX[0]+nX[1]+nX[2]);
+		proj_cloud->points[i].y = frame[i].y*(nY[0]+nY[1]+nY[2]);
+		proj_cloud->points[i].z = frame[i].z*(nZ[0]+nZ[1]+nZ[2]);
+	}
+}*/
 void PclPlane::findPlane()
 {
+    /*
     PointCloud<PointXYZ>::Ptr
             cloud_filtered (new PointCloud<PointXYZ>),
             cloud_p (new PointCloud<PointXYZ>),
@@ -76,7 +97,8 @@ void PclPlane::findPlane()
     }
     cout << "RANSAC Done!" << endl;
     //plane_cloud->clear();
-    plane_cloud = cloud_p;
+    */
+    plane_cloud = input_cloud;
 
     auto dataSize = (int)plane_cloud->size();
 
@@ -128,7 +150,7 @@ float PclPlane::getDistToPlane(float x, float y, float z)
     float sumOfSquares = (coeffA*coeffA)+(coeffB*coeffB)+(coeffC*coeffC);
     float distDenum = sqrt(sumOfSquares);
 
-    if((distNum/distDenum) > 0.0)
+    if((distNum/distDenum) > 0.0f)
         return 0.0f;
     return abs(distNum/distDenum);
 }
@@ -198,54 +220,25 @@ PointCloud<PointXYZRGB>::Ptr PclPlane::mergeCloudsColor(PointCloud<PointXYZ>::Pt
 
 }
 
-PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, char in)
+PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement)
 {
     PointCloud<PointXYZ>::Ptr cloud_filtered (new PointCloud<PointXYZ>);
 
     cloud_filtered->clear();
-    if (in == 's')
-    {
-        cout << "Statistical removal" << endl;
-        StatisticalOutlierRemoval<PointXYZ> sor;
-        sor.setInputCloud (outlier_cloud);
-        sor.setMeanK (50);
-        sor.setStddevMulThresh (1.0);
-        sor.filter (*cloud_filtered);
-    }
-    else if (in == 'c')
-    {
-        cout << "Conditional removal" << endl;
-        // build the condition
-        ConditionAnd<PointXYZ>::Ptr range_cond(new ConditionAnd<PointXYZ>());
 
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("x", ComparisonOps::GT, -0.50)));
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("x", ComparisonOps::LT, 0.38)));
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("y", ComparisonOps::GT, -0.175))); //good
-        range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("y", ComparisonOps::LT, 0.215))); //21
-        //range_cond->addComparison(FieldComparison<PointXYZ>::ConstPtr(new FieldComparison<PointXYZ>("z", ComparisonOps::LT, zLimit)));
+    float minX = corners[0] - xDisplacement;
+    float maxX = corners[2] - xDisplacement;
+    float minY = corners[1] - yDisplacement;
+    float maxY = corners[3] - yDisplacement;
 
-        // build the filter
-        ConditionalRemoval<PointXYZ> condrem;
-        condrem.setCondition(range_cond);
-        condrem.setInputCloud(outlier_cloud);
-        condrem.setKeepOrganized(true);
-        // apply filter
-        condrem.filter(*cloud_filtered);
-    }
-    else if (in == 'm')
+    float x,y,z;
+    for(int i = 0; i < outlier_cloud->points.size(); i++)
     {
-        int midPoint = (int)((plane_cloud->points.size())/2);
-        float zLimit = plane_cloud->points[midPoint].z + 5.0f;
-        cout << "zLimit :  " << zLimit << endl;
-        float x,y,z;
-        for(int i = 0; i < outlier_cloud->points.size(); i++)
-        {
-            x = outlier_cloud->points[i].x;
-            y = outlier_cloud->points[i].y;
-            z = outlier_cloud->points[i].z;
-            if ((x > -500 && x < 380 && y > -175 && y < 215 && z > 0))
-                cloud_filtered->push_back(outlier_cloud->points[i]);
-        }
+        x = outlier_cloud->points[i].x;
+        y = outlier_cloud->points[i].y;
+        z = outlier_cloud->points[i].z;
+        if ((x > minX && x < maxX && y > minY && y < maxY)) //x > -500 && x < 380 && y > -175 && y < 215 && z > 0
+            cloud_filtered->points.push_back(outlier_cloud->points[i]);
     }
     return cloud_filtered;
 }
@@ -405,45 +398,6 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
-PointXYZ PclPlane::CalculateTrajectory(float x, float y, float z)
-{
-	PointXYZ pt;
-	pt.y = y + (ConvVel/FrameRate)*cos(atan2((sorted_y->points.front().z-sorted_y->points.back().z),(sorted_y->points.front().y-sorted_y->points.back().y)));		//er usikker på front/back
-	pt.x = x + (ConvVel/FrameRate)*sin(atan2((sorted_x->points.front().z-sorted_x->points.back().z),(sorted_x->points.front().x-sorted_x->points.back().x)));
-	pt.z = z;
-
-	cout << " for delta x: z: "<< (sorted_x->points.front().z-sorted_x->points.back().z) << " x: " << (sorted_x->points.front().x-sorted_x->points.back().x) << endl;
-
-	cout << " for delta y: z: "<< (sorted_y->points.front().z-sorted_y->points.back().z) << " y: " << (sorted_y->points.front().y-sorted_y->points.back().y) << endl;
-	cout << " x: "<< pt.x << " y: " << pt.y << " z: " << pt.z << endl; 
-	return pt;
-}
-/*int PclPlane::BSmid(PointCloud<PointXYZ>::Ptr pc , char xORy)
-{
-	int indexL = 0;
-	int indexR = pc.size()-1;
-	while(indexL < indexR)
-	{
-		int indexM = indexL + indexR/2;
-		if( xORy == 'x'){
-			if (pc->points[indexM].x < -0.1f)
-				indexL = indexM;
-			else if (pc->points[indexM].x > 0.1f)
-				indexR = indexM;
-			else
-				return indexM;
-		}
-		else if( xORy == 'y'){
-			if (pc->points[indexM].y < -0.1f)
-				indexL = indexM;
-			else if (pc->points[indexM].y > 0.1f)
-				indexR = indexM;
-			else
-				return indexM;	
-		}		
-	}
-	 throw std::runtime_error("Function BSmidX failed");
-}*/
 
 
 PclPlane::~PclPlane() {}

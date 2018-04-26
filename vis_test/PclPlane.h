@@ -4,7 +4,6 @@
 //
 
 #include <iostream>
-#include <cmath>
 
 #include <boost/thread/thread.hpp>
 #include <pcl/common/common_headers.h>
@@ -33,6 +32,10 @@
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/conditional_removal.h>
 
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+
+#include "Algorithms.h"
 
 using namespace std;
 using namespace pcl;
@@ -45,7 +48,7 @@ class PclPlane {
 public:
     PclPlane();
     PclPlane(PointCloud<PointXYZ>::Ptr in_cloud);
-    void insertCloud(PointCloud<PointXYZ>::Ptr);
+    void insertCloud(std::vector<Algorithms::pts> in_cloud);
 
     void findPlane();
     float getDistToPlane(float x, float y, float z);
@@ -53,28 +56,26 @@ public:
     void visualizeColorCloud(PointCloud<PointXYZRGB>::Ptr);
     void visualizePlaneCloud();
     PointCloud<PointXYZRGB>::Ptr mergeCloudsColor(PointCloud<PointXYZ>::Ptr cloud1, char color1, PointCloud<PointXYZ>::Ptr cloud2, char color2);
-    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, char);
+    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement);
     void mergeSort(PointCloud<PointXYZ>::Ptr,int size);
 
 
 
 
     ~PclPlane();
-    PointCloud<PointXYZ>::Ptr input_cloud = {};
-    PointCloud<PointXYZ>::Ptr plane_cloud = {};
+    PointCloud<PointXYZ>::Ptr input_cloud = {0};
+    PointCloud<PointXYZ>::Ptr plane_cloud = {0};
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
-	PointXYZ CalculateTrajectory(float x, float y, float z);
-
+	float nX[3] = {-0.9957f, -0.0064f,0.0923f};
+	float nY[3] = {-0.0053f, 0.9999f,0.0121f};
+	float nZ[3] = {0.0924f, -0.0116f,0.9957f}; 
 private:
     PointXYZ* mergeSortX(PointXYZ* arr, int l, int r);
     PointXYZ* mergeX(PointXYZ* arr, int l, PointXYZ* r, int m);
     PointXYZ* mergeSortY(PointXYZ* arr, int l, int r);
     PointXYZ* mergeY(PointXYZ* arr, int l, PointXYZ* r, int m);
-
-	float ConvVel = 1000.0;		// mm per sec
-	int FrameRate = 30;			// frames per sec
 
 };
 
