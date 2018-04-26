@@ -9,13 +9,13 @@ Algorithms::Algorithms() {}
 
 std::vector<Algorithms::pts> Algorithms::removeOutliers(std::vector<pts> inputVec, std::vector<float> corners, float xDisplacement, float yDisplacement)
 {
-    std::vector<pts> filteredVec;
-    filteredVec.clear();
+    std::vector<pts> filteredVec = {};
+    //filteredVec.clear();
 
-    float minX = corners[0] - xDisplacement;
-    float maxX = corners[1] - xDisplacement;
-    float minY = corners[2] - yDisplacement;
-    float maxY = corners[3] - yDisplacement;
+    float minX = corners[1] - xDisplacement;
+    float maxX = corners[3] - xDisplacement;
+    float minY = corners[0] - yDisplacement;
+    float maxY = corners[2] - yDisplacement;
 
     float x,y,z;
     for(int i = 0; i < inputVec.size(); i++)

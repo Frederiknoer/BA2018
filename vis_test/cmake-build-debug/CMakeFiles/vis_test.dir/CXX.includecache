@@ -100,6 +100,12 @@ pcl/surface/gp3.h
 Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
 
+/home/fred/Git/BA2018/vis_test/SafeQueue.h
+rsCam.h
+/home/fred/Git/BA2018/vis_test/rsCam.h
+vector
+-
+
 /home/fred/Git/BA2018/vis_test/main.cpp
 Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
@@ -109,7 +115,15 @@ rsCam.h
 /home/fred/Git/BA2018/vis_test/rsCam.h
 OpenCV.h
 /home/fred/Git/BA2018/vis_test/OpenCV.h
+SafeQueue.h
+/home/fred/Git/BA2018/vis_test/SafeQueue.h
+thread
+-
 iostream
+-
+cstdlib
+-
+pthread.h
 -
 
 /home/fred/Git/BA2018/vis_test/rsCam.cpp

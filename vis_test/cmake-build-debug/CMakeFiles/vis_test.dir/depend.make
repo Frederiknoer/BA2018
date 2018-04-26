@@ -558,6 +558,7 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/vtk-8.1/vtkkwiml/int.
 CMakeFiles/vis_test.dir/main.cpp.o: ../Algorithms.h
 CMakeFiles/vis_test.dir/main.cpp.o: ../OpenCV.h
 CMakeFiles/vis_test.dir/main.cpp.o: ../PclPlane.h
+CMakeFiles/vis_test.dir/main.cpp.o: ../SafeQueue.h
 CMakeFiles/vis_test.dir/main.cpp.o: ../main.cpp
 CMakeFiles/vis_test.dir/main.cpp.o: ../rsCam.h
 CMakeFiles/vis_test.dir/main.cpp.o: /usr/include/eigen3/Eigen/Cholesky

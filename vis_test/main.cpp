@@ -2,27 +2,34 @@
 #include "PclPlane.h"
 #include "rsCam.h"
 #include "OpenCV.h"
+#include "SafeQueue.h"
+#include <thread>
 #include <iostream>
-//#include "nr3.h"
-//#include "utilities.h"
-//#include "mcintegrate.h"
+#include <cstdlib>
+#include <pthread.h>
+
 
 using namespace std;
 
+#define RSx 1280
+#define RSy 720
+#define fps 6
 
-int main (int argc, char * argv[]) try
+static SafeQueue sq;
+
+void volumeEstimate()
 {
-    int RSx = 1280, RSy = 720, fps = 30;
-
-    rsCam Stcam(RSx,RSy,fps);
-
+    //const rs2::vertex *rsFrame;
     int camPlace;
     int method = 0;
+    int convSpeed = 0;
     cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2) ..." << endl;
     cin >> camPlace;
+    //cout << endl << "Enter conveyor speed ..." << endl;
+    //cin >> convSpeed;
     cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV 2D image projection(1), "
             "PCL Nearest Neighbor trapzoidal(2), OpenCV 2D image projection with minRect function(3), "
-             "PCL triangulation(4)"<< endl;
+            "PCL triangulation(4)"<< endl;
     cin >> method;
     cout << endl;
 
@@ -35,14 +42,19 @@ int main (int argc, char * argv[]) try
     PointXYZ tempPoint;
 
     cout << "Taking picture of empty plane..." << endl;
-    Stcam.startStream();
-    auto rsFrame = Stcam.RqSingleFrame();
+
+    while(sq.queueEmpty);
+    auto rsFrame = sq.pull();
+    cout << "Pulled" << endl;
     for(int i = 0; i < (RSx*RSy); i ++)
     {
+        //cout << i << endl;
+        //cout << rsFrame[i].x << endl;
         emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
         emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
         emptyTrayVec[i].z = rsFrame[i].z * 100.0f; //This is only for finding workspace!!!!!
     }
+    cout << "test" << endl;
     ocvWS.create2dDepthImage(emptyTrayVec);
 
     if(camPlace == 1)
@@ -52,56 +64,73 @@ int main (int argc, char * argv[]) try
 
     ocvWS.findBoundingBox(500, 1500);
     std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
+    if(outlierVector.size() > 4)
+        cout << "bad WS" << endl;
+    cout << "X dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   Y dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
+    outlierVector[0] = outlierVector[0] + 15; //x
+    outlierVector[1] = outlierVector[1] + 25; //y
+    outlierVector[2] = outlierVector[2] - 15; //x
+    outlierVector[3] = outlierVector[3] - 250; //y
 
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
 
-    rsFrame = Stcam.RqSingleFrame();
+    while(sq.queueEmpty);
+    rsFrame = sq.pull();
     for(int i = 0; i < (RSx*RSy); i ++)
     {
         emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
         emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
         emptyTrayVec[i].z = rsFrame[i].z * 1000.0f;
     }
-    std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 0, 0);
+
 
     cout << "Plane estimation Done! " << endl << "Insert garments and press enter: .. " << endl;
     cin.get();
-    for(int a = 0; a < 1000; a++)
+    while(true)
     {
         cout << "Press Enter" << endl;
         cin.get();
         cout << "... " << endl;
-        rsFrame = Stcam.RqSingleFrame();
-        if(method < 3)
+
+        while(sq.queueEmpty);
+        rsFrame = sq.pull();
+        for(int i = 0; i < (RSx*RSy); i ++)
+        {
+            objVec[i].x = rsFrame[i].x * 1000.0f;
+            objVec[i].y = rsFrame[i].y * 1000.0f;
+            objVec[i].z = rsFrame[i].z * 1000.0f;
+        }
+        /*
+        objCloud->clear();
             for(int i = 0; i < (RSx*RSy); i ++)
             {
-                objVec[i].x = rsFrame[i].x * 1000.0f;
-                objVec[i].y = rsFrame[i].y * 1000.0f;
-                objVec[i].z = rsFrame[i].z * 1000.0f;
-            }
-        else if (method > 3)
-            objCloud->clear();
-            for(int i = 0; i < (RSx*RSy); i ++)
-            {
-                tempPoint.x = rsFrame[i].x * 1000.0f;
-                tempPoint.y = rsFrame[i].y * 1000.0f;
-                tempPoint.z = rsFrame[i].z * 1000.0f;
+                tempPoint.x = newRsFrame[i].x * 1000.0f;
+                tempPoint.y = newRsFrame[i].y * 1000.0f;
+                tempPoint.z = newRsFrame[i].z * 1000.0f;
                 objCloud->points.push_back(tempPoint);
             }
-
+        */
         switch(method)
         {
             case 0 :
             {
-                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
-                double traysum = 0.0; double objsum = 0.0;
-
+                cout << emptyTrayVec.size() << " - " << objVec.size() << endl;
+                static double traysum = 0.0;
+                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2);
+                cout << emptyTrayVec_f.size() << endl;
                 for(int i = 0; i < emptyTrayVec_f.size(); i++)
                     traysum += sqrt(pow(emptyTrayVec_f[i].x ,2) + pow(emptyTrayVec_f[i].y ,2) + pow(emptyTrayVec_f[i].z ,2));
+                cout << traysum << endl;
 
-                for(int i = 0; i < objVec_f.size(); i++)
-                    objsum += sqrt(pow(objVec_f[i].x ,2) + pow(objVec_f[i].y ,2) + pow(objVec_f[i].z ,2));
+                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2);
+                double objsum = 0.0;
+                cout << objVec_f.size() << endl;
+                for(int j = 0; j < objVec_f.size(); j++)
+                    objsum += sqrt( (pow(objVec_f[j].x ,2)) + (pow(objVec_f[j].y ,2)) + (pow(objVec_f[j].z ,2)) );
+
+
+                cout << objsum << endl;
 
                 cout << "Volume: " << abs(traysum-objsum) << endl;
 
@@ -110,11 +139,10 @@ int main (int argc, char * argv[]) try
             case 1 : //OpenCv 2Dimage projection
             {
                 OpenCV ocvGarment;
-                if(a == 0)
-                    ocvGarment.loadPlane(algo.removeOutliers(emptyTrayVec, outlierVector, 0, 0));
+                ocvGarment.loadPlane(algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2));
 
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 0, 0));
-                ocvGarment.threshold('N', 10);
+                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
+                ocvGarment.threshold('N', 7.5);
                 ocvGarment.findBoundingBox(100, 750);
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
                 break;
@@ -122,16 +150,17 @@ int main (int argc, char * argv[]) try
             case 2 : //OpenCv 2Dimage projection with roatated rectangle
             {
                 OpenCV ocvGarment;
-                if(a == 0)
-                    ocvGarment.loadPlane(algo.removeOutliers(emptyTrayVec, outlierVector, 0, 0));
+                ocvGarment.loadPlane(algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2));
 
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 0, 0));
+                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
-                ocvGarment.findRoatedBoundingBox(100, 750);
+                ocvGarment.findRoatedBoundingBox(150, 750);
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+                break;
             }
             case 3 : //PCL nearest neighbor trapzoidal
             {
+                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2);
                 PclPlane pclObj; //Static?
 
                 static int K = 2;
@@ -146,15 +175,13 @@ int main (int argc, char * argv[]) try
                 static double area = 0.0;
                 static double volume = 0.0;
                 static double sumVolume;
-                if(a == 0)
-                {
-                    pclObj.insertCloud(emptyTrayVec_f);
-                    pclObj.findPlane();
-                    sumVolume = 0.0;
-                }
+
+                pclObj.insertCloud(emptyTrayVec_f);
+                pclObj.findPlane();
+                sumVolume = 0.0;
 
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
-                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
+                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, 1280/2, 1280/2);
 
                 kdtree.setInputCloud(obj_cloud_f);
 
@@ -169,7 +196,7 @@ int main (int argc, char * argv[]) try
 
                         volume = area * ((pclObj.getDistToPlane(A.x, A.y, A.z) + pclObj.getDistToPlane(B.x, B.y, B.z) + pclObj.getDistToPlane(C.x, C.y, C.z))/3);
                         sumVolume += volume;
-                        //ERASE POINT HERE
+                        obj_cloud_f->erase(obj_cloud_f->begin()+i);
                     }
                 }
                 cout << "Volume: " << sumVolume << endl;
@@ -177,16 +204,15 @@ int main (int argc, char * argv[]) try
             }
             case 4 :
             {
+                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
                 PclPlane pclObj;
                 static double area = 0.0;
                 static double volume = 0.0;
                 static double sumVolume;
-                if(a == 0)
-                {
-                    pclObj.insertCloud(emptyTrayVec_f);
-                    pclObj.findPlane();
-                    sumVolume = 0.0;
-                }
+
+                pclObj.insertCloud(emptyTrayVec_f);
+                pclObj.findPlane();
+                sumVolume = 0.0;
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
                 obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
 
@@ -239,6 +265,72 @@ int main (int argc, char * argv[]) try
             }
         }
     }
+}
+
+void getFrames()
+{
+    rsCam Stcam(RSx,RSy,fps);
+    Stcam.startStream();
+    while (true)
+    {
+        auto rsFrame = Stcam.RqSingleFrame();
+        sq.push(rsFrame);
+    }
+
+
+}
+
+int main (int argc, char * argv[]) try
+{
+    /*
+    std::thread cam(getFrames);
+    std::thread vol(volumeEstimate);
+
+    cam.join();
+    vol.join();
+     */
+    pcl::PointCloud<pcl::PointXYZ>::Ptr trayCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud2 (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointXYZ tempPoint;
+
+    PclPlane test;
+    rsCam Stcam(RSx,RSy,fps);
+    Stcam.startStream();
+    auto rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+        trayCloud->points.push_back(tempPoint);
+    }
+    trayCloud->resize(RSy*RSx);
+    pcl::io::savePCDFileASCII ("disttest0.pcd", *trayCloud);
+    PclPlane test2(trayCloud);
+    test.visualizeCloud(trayCloud);
+    rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+        objCloud->points.push_back(tempPoint);
+    }
+    objCloud->resize(RSy*RSx);
+    pcl::io::savePCDFileASCII ("disttest1.pcd", *objCloud);
+    test.visualizeCloud(objCloud);
+    rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+        objCloud2->points.push_back(tempPoint);
+    }
+    objCloud2->resize(RSy*RSx);
+    pcl::io::savePCDFileASCII ("disttest2.pcd", *objCloud2);
+    test.visualizeCloud(objCloud2);
 
     return EXIT_SUCCESS;
 }
@@ -255,45 +347,5 @@ catch (const exception & e)
 }
 
 /*
-    pcl::PointCloud<pcl::PointXYZ>::Ptr trayCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud2 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointXYZ tempPoint;
 
-    PclPlane test;
-
-    Stcam.startStream();
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        trayCloud->points.push_back(tempPoint);
-    }
-    trayCloud->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest00.pcd", *trayCloud);
-    test.visualizeCloud(trayCloud);
-    rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        objCloud->points.push_back(tempPoint);
-    }
-    objCloud->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest3.pcd", *objCloud);
-    test.visualizeCloud(objCloud);
-    rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        objCloud2->points.push_back(tempPoint);
-    }
-    objCloud2->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest4.pcd", *objCloud2);
-    test.visualizeCloud(objCloud2);
 */

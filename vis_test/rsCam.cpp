@@ -92,10 +92,11 @@ void rsCam::filtering(depth_frame& frame, int i)
     disparity_transform disparity2Depth(false);
 
     spatial_filter spat;
-    temporal_filter temp;
+    //temporal_filter temp;
 
-    spat.set_option(RS2_OPTION_HOLES_FILL, 4);
+    spat.set_option(RS2_OPTION_HOLES_FILL, 3);
     frame = depth2Disparity.process((frame));
+    /*
     for (int j = 0; j < i;j++)
         for(auto && frames : _pipe->wait_for_frames())
         {
@@ -104,6 +105,7 @@ void rsCam::filtering(depth_frame& frame, int i)
                 frame = temp.process(disp);
             }
         }
+       */
     frame = spat.process(frame);
     frame = disparity2Depth.process(frame);
 }

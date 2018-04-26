@@ -216,8 +216,8 @@ PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr out
     cloud_filtered->clear();
 
     float minX = corners[0] - xDisplacement;
-    float maxX = corners[1] - xDisplacement;
-    float minY = corners[2] - yDisplacement;
+    float maxX = corners[2] - xDisplacement;
+    float minY = corners[1] - yDisplacement;
     float maxY = corners[3] - yDisplacement;
 
     float x,y,z;

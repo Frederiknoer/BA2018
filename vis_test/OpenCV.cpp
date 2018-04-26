@@ -181,9 +181,12 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
 {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(thresholdImage, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+    //std::cout << contours.size() << std::endl;
 
     std::vector<cv::RotatedRect> minRect( contours.size() );
     std::vector<cv::Rect> rectThresh;
+
+    //std::cout << minRect.size() << std::endl;
 
     for( int i = 0; i < contours.size(); i++ )
     {
@@ -197,6 +200,7 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
     }
 
     boundingBoxes = rectThresh;
+    std::cout << boundingBoxes.size() << std::endl;
 
     cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
     drawing = orgImage;
