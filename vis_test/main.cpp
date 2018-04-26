@@ -26,15 +26,13 @@ int main (int argc, char * argv[]) try
     cin >> method;
     cout << endl;
 
-
-
-
     Algorithms algo;
     OpenCV ocvWS;
 
     std::vector<Algorithms::pts> emptyTrayVec(RSx*RSy);
     std::vector<Algorithms::pts> objVec(RSx*RSy);
     pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    PointXYZ tempPoint;
 
     cout << "Taking picture of empty plane..." << endl;
     Stcam.startStream();
@@ -55,8 +53,6 @@ int main (int argc, char * argv[]) try
     ocvWS.findBoundingBox(500, 1500);
     std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
 
-    //delete ocvWS;
-    //emptyTrayVec.clear();
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
 
@@ -84,12 +80,14 @@ int main (int argc, char * argv[]) try
                 objVec[i].y = rsFrame[i].y * 1000.0f;
                 objVec[i].z = rsFrame[i].z * 1000.0f;
             }
-        else if (method == 3)
+        else if (method > 3)
+            objCloud->clear();
             for(int i = 0; i < (RSx*RSy); i ++)
             {
-                objCloud->points[i].x = rsFrame[i].x * 1000.0f;
-                objCloud->points[i].y = rsFrame[i].y * 1000.0f;
-                objCloud->points[i].z = rsFrame[i].z * 1000.0f;
+                tempPoint.x = rsFrame[i].x * 1000.0f;
+                tempPoint.y = rsFrame[i].y * 1000.0f;
+                tempPoint.z = rsFrame[i].z * 1000.0f;
+                objCloud->points.push_back(tempPoint);
             }
 
         switch(method)
