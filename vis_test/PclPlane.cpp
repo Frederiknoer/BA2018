@@ -43,7 +43,7 @@ void PclPlane::insertCloud(std::vector<Algorithms::pts> in_cloud)
 }*/
 void PclPlane::findPlane()
 {
-    /*
+    
     PointCloud<PointXYZ>::Ptr
             cloud_filtered (new PointCloud<PointXYZ>),
             cloud_p (new PointCloud<PointXYZ>),
@@ -97,7 +97,7 @@ void PclPlane::findPlane()
     }
     cout << "RANSAC Done!" << endl;
     //plane_cloud->clear();
-    */
+    
     plane_cloud = input_cloud;
 
     auto dataSize = (int)plane_cloud->size();

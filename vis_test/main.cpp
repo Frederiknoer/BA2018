@@ -29,37 +29,65 @@ int main (int argc, char * argv[]) try
   
 	rsCam Stcam(RSx,RSy,fps);
 	Stcam.startStream();
-	auto rsFrame1 = Stcam.RqSingleFrame();
+	auto rsFrame = Stcam.RqSingleFrame();
 cout << "hej" << endl;
 PointXYZ tempPoint;
     for(int i = 0; i < (RSx*RSy); i ++)
     {
-        tempPoint.x = rsFrame1[i].x * 1000.0f;
-        tempPoint.y = rsFrame1[i].y * 1000.0f;
-        tempPoint.z = rsFrame1[i].z * 1000.0f;
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
 		empty_tray_cloud->push_back(tempPoint);
     }
 	 cout << "Empty Tray frame taken" << endl;
     PclPlane planetest(empty_tray_cloud);
 	 cout << "Finding Plane" << endl;
     planetest.findPlane();
-	
-	std::cout << "Press enter to continue" << std::endl;
 
+	empty_tray_cloud->clear();
+	std::cout << "Press enter to continue" << std::endl;
 	std::cin.get();
+
+	std::cout << "Press enter to take first picture" << std::endl;
+	std::cin.get();
+	rsFrame = Stcam.RqSingleFrame();
+ 	for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		empty_tray_cloud->push_back(tempPoint);
+    }
+	pcl::io::savePCDFileASCII ("movement1.pcd", *empty_tray_cloud);
+	std::cout << "File saved as movement1.pcd" << std::endl;
+
+	empty_tray_cloud->clear();
+	std::cout << "Press enter to take second picture" << std::endl;
+	std::cin.get();
+	rsFrame = Stcam.RqSingleFrame();
+ 	for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		empty_tray_cloud->push_back(tempPoint);
+    }
+	pcl::io::savePCDFileASCII ("movement2.pcd", *empty_tray_cloud);
+	std::cout << "File saved as movement2.pcd" << std::endl;
+
 	float vel = 576.3f/fps;
 	//PointXYZ tempPoint;
-cout << planetest.nX[0] << " - " << planetest.nX[1] <<" - " <<planetest.nX[2] << endl;
+	cout << planetest.nX[0] << " - " << planetest.nX[1] <<" - " <<planetest.nX[2] << endl;
 	for (int i = 0; i < 6;i++)
 	{	
 		cout << "Frame: " << i << endl;
-		auto rsFrame = Stcam.RqSingleFrame();
+		rsFrame = Stcam.RqSingleFrame();
 		for(int j = 0; j < (RSx*RSy); j++)
 		{
 		//cout << rsFrame[j].x*1000.0f*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2]) << endl;
 			if (planetest.getDistToPlane(rsFrame[j].x,rsFrame[j].y,rsFrame[j].z) > 10.0)
-				//multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),rsFrame[j].z*1000.0*(planetest.nZ[0]+planetest.nZ[1]+planetest.nZ[2])));	//Kan være z skal være distance to plane i stedet.
-				multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),planetest.getDistToPlane(rsFrame[j].x*1000,rsFrame[j].y*1000,rsFrame[j].z*1000)));
+				multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),rsFrame[j].z*1000.0*(planetest.nZ[0]+planetest.nZ[1]+planetest.nZ[2])));	//Kan være z skal være distance to plane i stedet.
+				//multi_cloud->push_back(PointXYZ(rsFrame[j].x*1000.0*(planetest.nX[0]+planetest.nX[1]+planetest.nX[2])+vel,rsFrame[j].y*1000.0*(planetest.nY[0]+planetest.nY[1]+planetest.nY[2]),planetest.getDistToPlane(rsFrame[j].x*1000,rsFrame[j].y*1000,rsFrame[j].z*1000)));
 		}
 	}
 	std::vector<float> corners = {-200.0f,-200.0f,400.0f,150.0f};
