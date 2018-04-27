@@ -1,54 +1,44 @@
-#ifndef VIS_TEST_SAFEQUEUE_H
-#define VIS_TEST_SAFEQUEUE_H
 
+#include "Algorithms.h"
 #include "rsCam.h"
 #include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
-
+// A threadsafe-queue.
 class SafeQueue
 {
 public:
-    SafeQueue() {};
-    bool push(const rs2::vertex * frame)
+    SafeQueue(void) : q(), m(), c() {}
+
+    ~SafeQueue(void) {}
+
+    // Add an element to the queue.
+    void enqueue(std::vector<Algorithms::pts> t)
     {
-        if(!mutex)
-        {
-            mutex = true;
-            frameQueue.push(frame);
-            queueEmpty = false;
-            if (frameQueue.empty())
-                queueEmpty = true;
-            mutex = false;
-            return true;
-        }
-        else
-            return false;
-    };
+        std::lock_guard<std::mutex> lock(m);
+        q.push(t);
+        c.notify_one();
+    }
 
-    const rs2::vertex * pull()
+    // Get the "front"-element.
+    // If the queue is empty, wait till a element is avaiable.
+    std::vector<Algorithms::pts> dequeue(void)
     {
-        if (!mutex)
+        std::unique_lock<std::mutex> lock(m);
+        while(q.empty())
         {
-            mutex = true;
-            const rs2::vertex *temp;
-            temp = frameQueue.front();
-            frameQueue.pop();
-            if (frameQueue.empty())
-                queueEmpty = true;
-            mutex = false;
-            return temp;
+            // release lock as long as the wait and reaquire it afterwards.
+            c.wait(lock);
         }
-        else
-            return nullptr;
-    };
+        std::vector<Algorithms::pts> val = q.front();
+        q.pop();
+        return val;
+    }
 
-
-    bool queueEmpty = true;
 private:
-    std::queue<const rs2::vertex *> frameQueue;
-    bool mutex = false;
-
+    std::queue<std::vector<Algorithms::pts>> q;
+    mutable std::mutex m;
+    std::condition_variable c;
 };
-
-
-#endif //VIS_TEST_SAFEQUEUE_H

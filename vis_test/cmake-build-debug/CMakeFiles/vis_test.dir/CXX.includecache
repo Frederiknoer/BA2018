@@ -101,9 +101,17 @@ Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
 
 /home/fred/Git/BA2018/vis_test/SafeQueue.h
+Algorithms.h
+/home/fred/Git/BA2018/vis_test/Algorithms.h
 rsCam.h
 /home/fred/Git/BA2018/vis_test/rsCam.h
 vector
+-
+queue
+-
+mutex
+-
+condition_variable
 -
 
 /home/fred/Git/BA2018/vis_test/main.cpp

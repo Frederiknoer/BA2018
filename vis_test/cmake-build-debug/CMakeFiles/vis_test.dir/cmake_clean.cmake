@@ -4,7 +4,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/vis_test.dir/rsCam.cpp.o"
   "CMakeFiles/vis_test.dir/OpenCV.cpp.o"
   "CMakeFiles/vis_test.dir/Algorithms.cpp.o"
-  "CMakeFiles/vis_test.dir/threadCom.cpp.o"
   "vis_test.pdb"
   "vis_test"
 )

@@ -258,33 +258,6 @@ rsCam.cpp.s:
 	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/rsCam.cpp.s
 .PHONY : rsCam.cpp.s
 
-threadCom.o: threadCom.cpp.o
-
-.PHONY : threadCom.o
-
-# target to build an object file
-threadCom.cpp.o:
-	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/threadCom.cpp.o
-.PHONY : threadCom.cpp.o
-
-threadCom.i: threadCom.cpp.i
-
-.PHONY : threadCom.i
-
-# target to preprocess a source file
-threadCom.cpp.i:
-	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/threadCom.cpp.i
-.PHONY : threadCom.cpp.i
-
-threadCom.s: threadCom.cpp.s
-
-.PHONY : threadCom.s
-
-# target to generate assembly for a file
-threadCom.cpp.s:
-	$(MAKE) -f CMakeFiles/vis_test.dir/build.make CMakeFiles/vis_test.dir/threadCom.cpp.s
-.PHONY : threadCom.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -309,9 +282,6 @@ help:
 	@echo "... rsCam.o"
 	@echo "... rsCam.i"
 	@echo "... rsCam.s"
-	@echo "... threadCom.o"
-	@echo "... threadCom.i"
-	@echo "... threadCom.s"
 .PHONY : help
 
 

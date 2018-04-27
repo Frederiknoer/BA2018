@@ -144,12 +144,6 @@
 		<Unit filename="/home/fred/Git/BA2018/vis_test/rsCam.h">
 			<Option target="vis_test"/>
 		</Unit>
-		<Unit filename="/home/fred/Git/BA2018/vis_test/threadCom.cpp">
-			<Option target="vis_test"/>
-		</Unit>
-		<Unit filename="/home/fred/Git/BA2018/vis_test/threadCom.h">
-			<Option target="vis_test"/>
-		</Unit>
 		<Unit filename="/home/fred/Git/BA2018/vis_test/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

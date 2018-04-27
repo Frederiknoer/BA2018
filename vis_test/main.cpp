@@ -7,19 +7,18 @@
 #include <iostream>
 #include <cstdlib>
 #include <pthread.h>
-#include "threadCom.h"
-
 
 using namespace std;
 
 #define RSx 1280
 #define RSy 720
-#define fps 15
+#define fps 6
 
-static SafeQueue sq;
+//static SafeQueue sq;
 
 void volumeEstimate()
 {
+    rsCam Stcam(RSx,RSy,fps);
     //const rs2::vertex *rsFrame;
     int camPlace;
     int method = 0;
@@ -44,15 +43,8 @@ void volumeEstimate()
 
     cout << "Taking picture of empty plane..." << endl;
 
-    while(sq.queueEmpty);
-    auto rsFrame = sq.pull();
-    while(true)
-    {
-        if (rsFrame != nullptr)
-            break;
-        rsFrame = sq.pull();
-    }
-    cout << "Pulled" << endl;
+    Stcam.startStream();
+    auto rsFrame = Stcam.RqSingleFrame();
     for(int i = 0; i < (RSx*RSy); i ++)
     {
         //cout << i << endl;
@@ -61,6 +53,7 @@ void volumeEstimate()
         emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
         emptyTrayVec[i].z = rsFrame[i].z * 100.0f; //This is only for finding workspace!!!!!
     }
+
     cout << "test" << endl;
     ocvWS.create2dDepthImage(emptyTrayVec);
 
@@ -79,17 +72,8 @@ void volumeEstimate()
     //outlierVector[2] = outlierVector[2] - 15; //x
     //outlierVector[3] = outlierVector[3] - 250; //y
 
-
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
-
-    while(sq.queueEmpty);
-    rsFrame = sq.pull();
-    while(true)
-    {
-        if (rsFrame != nullptr)
-            break;
-        rsFrame = sq.pull();
-    }
+    rsFrame = Stcam.RqSingleFrame();
     for(int i = 0; i < (RSx*RSy); i++)
     {
         emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
@@ -106,30 +90,25 @@ void volumeEstimate()
         cin.get();
         cout << "... " << endl;
 
-        while(sq.queueEmpty);
-        rsFrame = sq.pull();
-        while(true)
-        {
-            if (rsFrame != nullptr)
-                break;
-            rsFrame = sq.pull();
-        }
+        rsFrame = Stcam.RqSingleFrame();
+        /*
         for(int i = 0; i < (RSx*RSy); i ++)
         {
             objVec[i].x = rsFrame[i].x * 1000.0f;
             objVec[i].y = rsFrame[i].y * 1000.0f;
             objVec[i].z = rsFrame[i].z * 1000.0f;
         }
-        /*
+*/
+
         objCloud->clear();
             for(int i = 0; i < (RSx*RSy); i ++)
             {
-                tempPoint.x = newRsFrame[i].x * 1000.0f;
-                tempPoint.y = newRsFrame[i].y * 1000.0f;
-                tempPoint.z = newRsFrame[i].z * 1000.0f;
+                tempPoint.x = rsFrame[i].x * 1000.0f;
+                tempPoint.y = rsFrame[i].y * 1000.0f;
+                tempPoint.z = rsFrame[i].z * 1000.0f;
                 objCloud->points.push_back(tempPoint);
             }
-        */
+
         switch(method)
         {
             case 0 :
@@ -276,6 +255,9 @@ void volumeEstimate()
                 gp3.setSearchMethod (tree2);
                 gp3.reconstruct (triangles);
 
+                std::vector<int> parts = gp3.getPartIDs();
+                parts.size();
+
             }
             default :
             {
@@ -285,35 +267,34 @@ void volumeEstimate()
         }
     }
 }
-
+/*
 void getFrames()
 {
+    std::vector<Algorithms::pts> tempVec;
     rsCam Stcam(RSx,RSy,fps);
     Stcam.startStream();
-    bool c;
-    while (true)
+    auto rsFrame = Stcam.RqSingleFrame();
+    for(int i = 0; i < (RSx*RSy); i++)
     {
-        auto rsFrame = Stcam.RqSingleFrame();
-        while(true)
-        {
-            c = sq.push(rsFrame);
-            if(c) break;
-        }
-
-
+        tempVec[i].x = rsFrame[i].x * 1000.0f;
+        tempVec[i].y = rsFrame[i].y * 1000.0f;
+        tempVec[i].z = rsFrame[i].z * 1000.0f;
     }
-
+    sq.enqueue(tempVec);
 
 }
+ */
 
 int main (int argc, char * argv[]) try
 {
-
+/*
     std::thread cam(getFrames);
     std::thread vol(volumeEstimate);
 
     cam.join();
     vol.join();
+*/
+    volumeEstimate();
 
 
 
