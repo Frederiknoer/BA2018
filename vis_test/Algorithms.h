@@ -9,7 +9,6 @@
 #include <vector>
 #include <cmath>
 #include <eigen3/Eigen/SVD>
-
 class Algorithms {
 public:
 
@@ -28,11 +27,10 @@ public:
 
     void leastSquarSVD(std::vector<pts>);
     float getDistToPlane(float x, float y, float z);
-
+	
 
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
-
-
+	
 private:
     pts* mergeSortX(pts* arr, int l, int r);
     pts* mergeX(pts* arr, int l, pts* r, int m);

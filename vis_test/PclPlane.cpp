@@ -64,7 +64,7 @@ void PclPlane::findPlane()
     seg.setModelType (SACMODEL_PLANE);
     seg.setMethodType (SAC_RANSAC);
     seg.setMaxIterations (1000);
-    seg.setDistanceThreshold (7.5); //THIS IS IN MILLIMETER IF THE PC IS IN METERS CHANGE !!!!!!!!!!!!!
+    seg.setDistanceThreshold (4); //THIS IS IN MILLIMETER IF THE PC IS IN METERS CHANGE !!!!!!!!!!!!!
 
     // Create the filtering object
     ExtractIndices<PointXYZ> extract;
@@ -97,8 +97,8 @@ void PclPlane::findPlane()
     }
     cout << "RANSAC Done!" << endl;
     //plane_cloud->clear();
-    
-    plane_cloud = input_cloud;
+
+    plane_cloud = cloud_p;
 
     auto dataSize = (int)plane_cloud->size();
 
@@ -398,6 +398,15 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
-
+void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift)
+{
+	for (int i = 0; i < rs.size;i++)
+	{
+		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > THRESHOLD)
+					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
+											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));
+	}
+}
 
 PclPlane::~PclPlane() {}

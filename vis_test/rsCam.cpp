@@ -40,11 +40,29 @@ const rs2::vertex* rsCam::RqSingleFrame()
             list = _pts.get_vertices();
         }
     }
-    /*for (int i = 0 ; i < _pts.size();i++)
-       std::cout << list[i].x;*/
     if (list != nullptr)
     {
         return list;
+    }
+    else throw std::runtime_error("Can't fint dpeth stream");
+}
+frmdata rsCam::RqFrameData()
+{
+	frmdata fd;
+ 
+    for (auto&& frames : _pipe->wait_for_frames()) {
+        if (auto depth = frames.as<depth_frame>()) {
+            //filtering(depth, 10);
+            pointcloud pc;
+            _pts = pc.calculate(depth);
+            fd.vtx = _pts.get_vertices();
+			fd.size = _pts.size();
+			fd.timestamp = depth.get_timestamp();
+        }
+    }
+    if (fd.vtx != nullptr)
+    {
+        return fd;
     }
     else throw std::runtime_error("Can't fint dpeth stream");
 }

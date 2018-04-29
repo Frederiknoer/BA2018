@@ -1,0 +1,3 @@
+/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/fred/Git/BA2018/vis_test/cmake-build-debug/CMakeFiles/vis_test.dir

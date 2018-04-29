@@ -6,10 +6,15 @@
 #include <Eigen/SVD>
 #include <cstring>
 #include <iostream>
+#include <boost/thread/thread.hpp>
 
 #define IntelD435 "Intel RealSense 435"
-
-
+struct frmdata
+{
+	const rs2::vertex* vtx;
+	size_t size;
+	double timestamp;
+};
 using namespace rs2;
 
 class rsCam
@@ -19,10 +24,11 @@ public:
     rsCam(int x, int y, int fps);
     bool startStream();
 
-    const vertex* RqSingleFrame();
+    const rs2::vertex* RqSingleFrame();
     Eigen::MatrixXf RqMatrix();
     ~rsCam();
 
+	frmdata RqFrameData();
 private:
     pipeline* _pipe;
     rs2::config _cfg;
