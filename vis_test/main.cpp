@@ -5,8 +5,6 @@
 #include "SafeQueue.h"
 #include <thread>
 #include <iostream>
-#include <cstdlib>
-#include <pthread.h>
 
 using namespace std;
 
@@ -14,11 +12,12 @@ using namespace std;
 #define RSy 720
 #define fps 6
 
-//static SafeQueue sq;
+SafeQueue sq;
 
 void volumeEstimate()
 {
-    rsCam Stcam(RSx,RSy,fps);
+    //rsCam Stcam(RSx,RSy,fps);
+    //Stcam.startStream();
     //const rs2::vertex *rsFrame;
     int camPlace;
     int method = 0;
@@ -43,8 +42,8 @@ void volumeEstimate()
 
     cout << "Taking picture of empty plane..." << endl;
 
-    Stcam.startStream();
-    auto rsFrame = Stcam.RqSingleFrame();
+
+    auto rsFrame = sq.dequeue();
     for(int i = 0; i < (RSx*RSy); i ++)
     {
         //cout << i << endl;
@@ -73,7 +72,7 @@ void volumeEstimate()
     //outlierVector[3] = outlierVector[3] - 250; //y
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
-    rsFrame = Stcam.RqSingleFrame();
+    rsFrame = sq.dequeue();
     for(int i = 0; i < (RSx*RSy); i++)
     {
         emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
@@ -90,24 +89,23 @@ void volumeEstimate()
         cin.get();
         cout << "... " << endl;
 
-        rsFrame = Stcam.RqSingleFrame();
-        /*
+        rsFrame = sq.dequeue();
         for(int i = 0; i < (RSx*RSy); i ++)
         {
             objVec[i].x = rsFrame[i].x * 1000.0f;
             objVec[i].y = rsFrame[i].y * 1000.0f;
             objVec[i].z = rsFrame[i].z * 1000.0f;
         }
-*/
-
+/*
         objCloud->clear();
-            for(int i = 0; i < (RSx*RSy); i ++)
-            {
-                tempPoint.x = rsFrame[i].x * 1000.0f;
-                tempPoint.y = rsFrame[i].y * 1000.0f;
-                tempPoint.z = rsFrame[i].z * 1000.0f;
-                objCloud->points.push_back(tempPoint);
-            }
+        for(int i = 0; i < (RSx*RSy); i ++)
+        {
+            tempPoint.x = rsFrame[i].x * 1000.0f;
+            tempPoint.y = rsFrame[i].y * 1000.0f;
+            tempPoint.z = rsFrame[i].z * 1000.0f;
+            objCloud->points.push_back(tempPoint);
+        }
+*/
 
         switch(method)
         {
@@ -159,7 +157,9 @@ void volumeEstimate()
             case 3 : //PCL nearest neighbor trapzoidal
             {
                 std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2);
-                PclPlane pclObj; //Static?
+                PclPlane pclObj;
+                pclObj.insertCloud(emptyTrayVec_f);
+                pclObj.findPlane();
 
                 static int K = 2;
                 static int NofNeighbor = 0;
@@ -174,8 +174,6 @@ void volumeEstimate()
                 static double volume = 0.0;
                 static double sumVolume;
 
-                pclObj.insertCloud(emptyTrayVec_f);
-                pclObj.findPlane();
                 sumVolume = 0.0;
 
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
@@ -204,12 +202,14 @@ void volumeEstimate()
             {
                 std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
                 PclPlane pclObj;
+                pclObj.insertCloud(emptyTrayVec_f);
+                pclObj.findPlane();
+
                 static double area = 0.0;
                 static double volume = 0.0;
                 static double sumVolume;
 
-                pclObj.insertCloud(emptyTrayVec_f);
-                pclObj.findPlane();
+
                 sumVolume = 0.0;
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
                 obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
@@ -267,7 +267,7 @@ void volumeEstimate()
         }
     }
 }
-/*
+
 void getFrames()
 {
     std::vector<Algorithms::pts> tempVec;
@@ -281,21 +281,17 @@ void getFrames()
         tempVec[i].z = rsFrame[i].z * 1000.0f;
     }
     sq.enqueue(tempVec);
-
 }
- */
+
 
 int main (int argc, char * argv[]) try
 {
-/*
-    std::thread cam(getFrames);
-    std::thread vol(volumeEstimate);
 
-    cam.join();
-    vol.join();
-*/
-    volumeEstimate();
+    std::thread t1(getFrames);
+    std::thread t2(volumeEstimate);
 
+    t1.join();
+    t2.join();
 
 
     return EXIT_SUCCESS;
