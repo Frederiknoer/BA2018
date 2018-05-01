@@ -9,6 +9,7 @@
 #include <vector>
 #include <cmath>
 #include <eigen3/Eigen/SVD>
+#include <iostream>
 class Algorithms {
 public:
 
@@ -41,7 +42,7 @@ private:
 };
 struct node
 {
-	float value;
+	float value = 0.0f;
 	node* next;
 };
 class llist
@@ -119,7 +120,8 @@ public:
 			ite++;
 			temp = temp->next;
 		}
-		return sum / ite;
+		std::cout << sum / (float)ite << std::endl;
+		return sum / (float)ite;
 	}
 	/*void display()
 	{

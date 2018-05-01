@@ -96,10 +96,11 @@ void PclPlane::findPlane()
         i++;
     }
     cout << "RANSAC Done!" << endl;
+
     //plane_cloud->clear();
 	
     plane_cloud = cloud_p;
-
+	//plane_cloud = input_cloud;
     auto dataSize = (int)plane_cloud->size();
 
     Eigen::MatrixXf mat(dataSize,3);
@@ -402,8 +403,8 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 {
 	for (int i = 0; i < rs.size; i++)
 	{
-	//std::cout<< "inputMulti: " << i << std::endl;
-		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > THRESHOLD)
+		if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) < 7.5)
+		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > 7.5 && rs.vtx[i].z > 0.0 && rs.vtx[i].z < 1000.0)
 					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
 											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));

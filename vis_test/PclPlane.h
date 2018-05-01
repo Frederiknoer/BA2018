@@ -44,7 +44,7 @@ using namespace pcl;
 #ifndef VIS_TEST_PCLPLANE_H
 #define VIS_TEST_PCLPLANE_H
 
-#define THRESHOLD 7.5
+#define THRESHOLD 0.01
 
 class PclPlane {
 public:
@@ -70,9 +70,9 @@ public:
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
-	float nX[3] = {-0.9957f, -0.0064f,0.0923f};
-	float nY[3] = {-0.0053f, 0.9999f,0.0121f};
-	float nZ[3] = {0.0924f, -0.0116f,0.9957f}; 
+	float nX[3] = {0.9974f, 0.0043f,-0.072f};
+	float nY[3] = {0.0029f, -0.9998f,-0.0193f};
+	float nZ[3] = {0.0720f, -0.0190f,0.9972f}; 
 /*
 Coeff A: 0.152994
 Coeff B: -0.118216

@@ -3,7 +3,7 @@
 #include "Algorithms.h"
 
 
-#define conv_velocity 576.3f		// mm / ms
+#define conv_velocity  0.0f 	//576.3f		// mm / ms
 #define RSx 640
 #define RSy 480
 #define fps  6
@@ -41,9 +41,8 @@ bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
 	std::cout << "File saved as movement2.pcd" << std::endl;
 	return true;
 }
-double NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
+float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
 {
-std::cout << "hej " << std::endl;
 	llist AccMat[resX+1][resY+1] = {};
 	float sum = 0.0f;
 	float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
@@ -55,20 +54,21 @@ std::cout << "hej " << std::endl;
 		if (pc->points[i].y < minY) minY = pc->points[i].y;
 		else if  (pc->points[i].y > maxY) maxY = pc->points[i].y;
 	}
-	float stepX = (maxX-minX)/resX, stepY = (maxY-minY)/resY;
+	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
 	std::cout << minX << " - " << maxX << " : " << minY << " - " << maxY << std::endl;
 	for (int i = 0; i < pc->size(); i++)
 	{
-		std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
-		std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
-
-		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].append(pc->points[i].z);			
+		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
+		//std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
+	
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].append(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
 	}
 	std::cout << "dav " << std::endl;
 	for (int i = 0; i < resX;i++)
 		for(int j = 0; j < resY;j++)
 		{
 			sum += AccMat[i][j].average()*stepX*stepY;
+			//cout << "sum " << sum << "\n";
 		} 
 	return sum;
 }
@@ -78,7 +78,7 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	double firstframe = 0.0;
 	//double lastframe = 0.0;
 	float shift = 0.0f;
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		auto framedata = cam.RqFrameData();
 		if(i == 0)
@@ -92,7 +92,9 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 		
 		//lastframe = framedata.timestamp;
 	}
-	std::cout << "sum: " << NumIntegration(plan,multi_cloud,500,500) << std::endl;
+	pcl::io::savePCDFileASCII ("multi_cloud.pcd", *multi_cloud);
+	float sum1 =  NumIntegration(plan,multi_cloud,500,500);
+	std::cout << std::fixed <<  "sum: " << sum1 << std::endl;
 }
 
 
@@ -119,15 +121,31 @@ int main (int argc, char * argv[]) try
 		empty_tray_cloud->push_back(tempPoint);
     }
 	 cout << "Empty Tray frame taken" << endl;
+	pcl::io::savePCDFileASCII ("Empty_tray", *empty_tray_cloud);
     PclPlane planetest(empty_tray_cloud);
 	 cout << "Finding Plane" << endl;
-    planetest.findPlane();
+    //planetest.findPlane();
 
 	empty_tray_cloud->clear();
 	std::cout << "Press enter to continue" << std::endl;
 	std::cin.get();
+	for (int i = 0; i < 6;i++)
+	{
+	auto rsFrame = Stcam.RqSingleFrame();
+	PointXYZ tempPoint;
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		empty_tray_cloud->push_back(tempPoint);
+    }
+	pcl::io::savePCDFileASCII (std::to_string(i), *empty_tray_cloud);
+	empty_tray_cloud->clear();
+}
+	//initialize(Stcam);
 	
-	movingVolumeEstimation(planetest,Stcam);
+	//movingVolumeEstimation(planetest,Stcam);
 	
 	/*cout << multi_cloud_f->size() << endl;
 	multi_cloud_f->resize(multi_cloud_f->size());
