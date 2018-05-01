@@ -39,6 +39,100 @@ private:
 
 
 };
-
+struct node
+{
+	float value;
+	node* next;
+};
+class llist
+{
+public:
+	llist()
+	{
+		head = NULL;
+		tail = NULL;
+	}
+	void append(float value)
+	{
+		node *temp = new node;
+		temp->value = value;
+		temp->next = NULL;
+		if (head == NULL)
+		{
+			head = temp;
+			tail = temp;
+			temp = NULL;
+		}
+		else
+		{
+			tail->next = temp;
+			tail = temp;
+		}
+	}
+	void insertSort(float value)
+	{
+		node *temp = new node;
+		if (head->value > value)
+		{
+			temp->value = value;
+			temp->next = head;
+			head = temp;
+		}
+		else
+		{
+			temp = head;
+			while (temp->next != NULL && temp->next->value < value)
+			{
+				temp = temp->next;
+			}
+			node *temp2 = new node;
+			temp2->value = value;
+			temp2->next = temp->next;
+			temp->next = temp2;
+			
+		}
+	}
+	float median()
+	{
+		node *temp = head;
+		node *temp2 = head;
+		if (head == NULL)
+			return 0.0f;
+		while (temp2 != NULL && temp2->next != NULL)
+		{
+			temp = temp->next;
+			temp2 = temp2->next->next;
+		}
+		return temp->value;
+	}
+	float average()
+	{
+		if (head == NULL)
+			return 0.0f;
+		node *temp = new node;
+		temp = head;
+		float sum = 0.0f;
+		int ite = 0;
+		while (temp != NULL)
+		{
+			sum += temp->value;
+			ite++;
+			temp = temp->next;
+		}
+		return sum / ite;
+	}
+	/*void display()
+	{
+		node *temp = new node;
+		temp = head;
+		while (temp != NULL)
+		{
+			std::cout << temp->value << "\t";
+			temp = temp->next;
+		}
+	}*/
+private:
+	node *head, *tail;
+};
 
 #endif //VIS_TEST_ALGORITHMS_H

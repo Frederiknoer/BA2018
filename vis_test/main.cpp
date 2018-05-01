@@ -1,5 +1,6 @@
 #include "PclPlane.h"
 #include "rsCam.h"
+#include "Algorithms.h"
 
 
 #define conv_velocity 576.3f		// mm / ms
@@ -7,23 +8,6 @@
 #define RSy 480
 #define fps  6
 
-struct node
-{
-	float value;
-	node *next;
-}
-class list
-{
-public:
-	list()
-	{
-		head = NULL;
-		tail = NULL;		
-	}		
-
-private:
-	node *head, *tail;
-}
 
 bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
 {
@@ -57,42 +41,60 @@ bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
 	std::cout << "File saved as movement2.pcd" << std::endl;
 	return true;
 }
+double NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
+{
+std::cout << "hej " << std::endl;
+	llist AccMat[resX+1][resY+1] = {};
+	float sum = 0.0f;
+	float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
+	for (int i = 0 ; i < pc->size();i++)					// Find corners
+	{
+		if (pc->points[i].x < minX) minX = pc->points[i].x;
+		else if  (pc->points[i].x > maxX) maxX = pc->points[i].x;
+
+		if (pc->points[i].y < minY) minY = pc->points[i].y;
+		else if  (pc->points[i].y > maxY) maxY = pc->points[i].y;
+	}
+	float stepX = (maxX-minX)/resX, stepY = (maxY-minY)/resY;
+	std::cout << minX << " - " << maxX << " : " << minY << " - " << maxY << std::endl;
+	for (int i = 0; i < pc->size(); i++)
+	{
+		std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
+		std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
+
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].append(pc->points[i].z);			
+	}
+	std::cout << "dav " << std::endl;
+	for (int i = 0; i < resX;i++)
+		for(int j = 0; j < resY;j++)
+		{
+			sum += AccMat[i][j].average()*stepX*stepY;
+		} 
+	return sum;
+}
 void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		// 
 {
 	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
-	double lastframe = 0.0;
+	double firstframe = 0.0;
+	//double lastframe = 0.0;
 	float shift = 0.0f;
 	for (int i = 0; i < 6; i++)
 	{
 		auto framedata = cam.RqFrameData();
-		if ( i > 0)
-			shift = conv_velocity/(framedata.timestamp-lastframe);
+		if(i == 0)
+		{
+			firstframe = framedata.timestamp;
+			shift = 0.0f;
+		}
+		else
+			shift = conv_velocity/(framedata.timestamp-firstframe);
 		plan.InputToMultiCloud(multi_cloud,framedata,shift);
 		
-		lastframe = framedata.timestamp;
+		//lastframe = framedata.timestamp;
 	}
-	std::cout << "size: " << multi_cloud->size() << std::endl;
+	std::cout << "sum: " << NumIntegration(plan,multi_cloud,500,500) << std::endl;
 }
-double NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
-{
-	Eigen::MatrixXf AccMat(resX,resY);
-	float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
-	for (int i = 0 ; i < pc->size();i++)					// Find corners
-	{
-		if (pc->Points[i].x < minX) minX = pc->Points[i].x;
-		else if  (pc->Points[i].x > maxX) maxX = pc->Points[i].x;
 
-		if (pc->Points[i].y < minX) miny = pc->Points[i].x;
-		else if  (pc->Points[i].y > maxY) maxY = pc->Points[i].y;
-	}
-	float stepX = (maxX-minX)/resX, stepY = (maxY-minY)/resY;
-	
-	for (int i = 0; i < pc->size(); i++)0
-	{
-		AccMat((pc->Points[i].x-minX)/stepX,(pc->Points[i].y-minY)/stepY) = pc-Points[i].z;			// hvordan offsetter jeg det så minX,minY er 0;
-	}
-	
-}
 
 int main (int argc, char * argv[]) try
 {

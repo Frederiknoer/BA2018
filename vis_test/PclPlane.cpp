@@ -97,7 +97,7 @@ void PclPlane::findPlane()
     }
     cout << "RANSAC Done!" << endl;
     //plane_cloud->clear();
-
+	
     plane_cloud = cloud_p;
 
     auto dataSize = (int)plane_cloud->size();
@@ -400,8 +400,9 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
 }
 void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift)
 {
-	for (int i = 0; i < rs.size;i++)
+	for (int i = 0; i < rs.size; i++)
 	{
+	//std::cout<< "inputMulti: " << i << std::endl;
 		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > THRESHOLD)
 					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
