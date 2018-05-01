@@ -1,6 +1,6 @@
 #include "Algorithms.h"
 #include "PclPlane.h"
-#include "rsCam.h"
+//#include "rsCam.h"
 #include "OpenCV.h"
 #include "SafeQueue.h"
 #include <thread>
@@ -11,17 +11,18 @@ using namespace std;
 #define RSx 1280
 #define RSy 720
 #define fps 6
+#define convSpeed 576.3
 
 SafeQueue sq;
+
 
 void volumeEstimate()
 {
     //rsCam Stcam(RSx,RSy,fps);
     //Stcam.startStream();
     //const rs2::vertex *rsFrame;
-    int camPlace;
+    int camPlace = 1;
     int method = 0;
-    int convSpeed = 0;
     cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2) ..." << endl;
     cin >> camPlace;
     //cout << endl << "Enter conveyor speed ..." << endl;
@@ -31,7 +32,6 @@ void volumeEstimate()
             "PCL triangulation(4)"<< endl;
     cin >> method;
     cout << endl;
-
     Algorithms algo;
     OpenCV ocvWS;
 
@@ -42,15 +42,13 @@ void volumeEstimate()
 
     cout << "Taking picture of empty plane..." << endl;
 
-
     auto rsFrame = sq.dequeue();
-    for(int i = 0; i < (RSx*RSy); i ++)
+    cout << "loaded" << endl;
+    for(int i = 0; i < (RSx*RSy); i++)
     {
-        //cout << i << endl;
-        //cout << rsFrame[i].x << endl;
-        emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
-        emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
-        emptyTrayVec[i].z = rsFrame[i].z * 100.0f; //This is only for finding workspace!!!!!
+        emptyTrayVec[i].x = rsFrame[i].x;
+        emptyTrayVec[i].y = rsFrame[i].y;
+        emptyTrayVec[i].z = rsFrame[i].z / 10.0f; //This is only for finding workspace!!!!!
     }
 
     cout << "test" << endl;
@@ -66,20 +64,13 @@ void volumeEstimate()
     if(outlierVector.size() > 4)
         cout << "bad WS" << endl;
     cout << "X dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   Y dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
-    //outlierVector[0] = outlierVector[0] + 15; //x
-    //outlierVector[1] = outlierVector[1] + 25; //y
-    //outlierVector[2] = outlierVector[2] - 15; //x
-    //outlierVector[3] = outlierVector[3] - 250; //y
+    outlierVector[0] = outlierVector[0] + 10; //x
+    outlierVector[1] = outlierVector[1] + 10; //y
+    outlierVector[2] = outlierVector[2] - 10; //x
+    outlierVector[3] = outlierVector[3] - 200; //y
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
-    rsFrame = sq.dequeue();
-    for(int i = 0; i < (RSx*RSy); i++)
-    {
-        emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
-        emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
-        emptyTrayVec[i].z = rsFrame[i].z * 1000.0f;
-    }
-
+    emptyTrayVec = sq.dequeue();
 
     cout << "Plane estimation Done! " << endl << "Insert garments and press enter: .. " << endl;
     cin.get();
@@ -88,24 +79,8 @@ void volumeEstimate()
         cout << "Press Enter" << endl;
         cin.get();
         cout << "... " << endl;
-
-        rsFrame = sq.dequeue();
-        for(int i = 0; i < (RSx*RSy); i ++)
-        {
-            objVec[i].x = rsFrame[i].x * 1000.0f;
-            objVec[i].y = rsFrame[i].y * 1000.0f;
-            objVec[i].z = rsFrame[i].z * 1000.0f;
-        }
-/*
-        objCloud->clear();
-        for(int i = 0; i < (RSx*RSy); i ++)
-        {
-            tempPoint.x = rsFrame[i].x * 1000.0f;
-            tempPoint.y = rsFrame[i].y * 1000.0f;
-            tempPoint.z = rsFrame[i].z * 1000.0f;
-            objCloud->points.push_back(tempPoint);
-        }
-*/
+        sq.clearQueue();
+        objVec = sq.dequeue();
 
         switch(method)
         {
@@ -156,6 +131,15 @@ void volumeEstimate()
             }
             case 3 : //PCL nearest neighbor trapzoidal
             {
+                objCloud->clear();
+                for(int i = 0; i < objVec.size(); i ++)
+                {
+                    tempPoint.x = objVec[i].x * 1000.0f;
+                    tempPoint.y = objVec[i].y * 1000.0f;
+                    tempPoint.z = objVec[i].z * 1000.0f;
+                    objCloud->points.push_back(tempPoint);
+                }
+
                 std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2);
                 PclPlane pclObj;
                 pclObj.insertCloud(emptyTrayVec_f);
@@ -200,6 +184,15 @@ void volumeEstimate()
             }
             case 4 :
             {
+                objCloud->clear();
+                for(int i = 0; i < objVec.size(); i ++)
+                {
+                    tempPoint.x = objVec[i].x * 1000.0f;
+                    tempPoint.y = objVec[i].y * 1000.0f;
+                    tempPoint.z = objVec[i].z * 1000.0f;
+                    objCloud->points.push_back(tempPoint);
+                }
+
                 std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
                 PclPlane pclObj;
                 pclObj.insertCloud(emptyTrayVec_f);
@@ -268,27 +261,37 @@ void volumeEstimate()
     }
 }
 
-void getFrames()
+void getFrames(rsCam& cam)
 {
-    std::vector<Algorithms::pts> tempVec;
-    rsCam Stcam(RSx,RSy,fps);
-    Stcam.startStream();
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i++)
+    std::vector<Algorithms::pts> tempVec(RSx*RSy);
+    cam.startStream();
+    auto rsFrame = cam.RqSingleFrame();
+    while (true)
     {
-        tempVec[i].x = rsFrame[i].x * 1000.0f;
-        tempVec[i].y = rsFrame[i].y * 1000.0f;
-        tempVec[i].z = rsFrame[i].z * 1000.0f;
+        for(int i = 0; i < (RSx*RSy); i++)
+        {
+            tempVec[i].x = rsFrame[i].x * 1000.0f;
+            tempVec[i].y = rsFrame[i].y * 1000.0f;
+            tempVec[i].z = rsFrame[i].z * 1000.0f;
+        }
+        sq.enqueue(tempVec);
+        rsFrame = cam.RqSingleFrame();
     }
-    sq.enqueue(tempVec);
 }
 
 
 int main (int argc, char * argv[]) try
 {
+    rsCam Stcam(RSx,RSy,fps);
 
-    std::thread t1(getFrames);
-    std::thread t2(volumeEstimate);
+    std::thread t1([&]()
+    {
+        (getFrames(Stcam));
+    });
+    std::thread t2([&]()
+    {
+        (volumeEstimate());
+    });
 
     t1.join();
     t2.join();

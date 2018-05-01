@@ -12,22 +12,32 @@ public:
 
     ~SafeQueue(void) {}
 
-    void enqueue(std::vector<Algorithms::pts>& t)
+    void enqueue(std::vector<Algorithms::pts> &t)
     {
-        std::lock_guard<std::mutex> lock(m);
+        m.lock();
         q.push(t);
         c.notify_one();
+        m.unlock();
     }
 
-    std::vector<Algorithms::pts>& dequeue(void)
+    std::vector<Algorithms::pts> dequeue(void)
     {
         std::unique_lock<std::mutex> lock(m);
         while(q.empty())
             c.wait(lock); // release lock as long as the wait and reaquire it afterwards.
 
-        std::vector<Algorithms::pts> val = q.front();
+        std::vector<Algorithms::pts> val;
+        val = q.front();
         q.pop();
         return val;
+    }
+
+    void clearQueue(void)
+    {
+        m.lock();
+        for(int i = 0; i < q.size(); i++)
+            q.pop();
+        m.unlock();
     }
 
 private:

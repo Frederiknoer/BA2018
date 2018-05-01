@@ -9,16 +9,6 @@ OpenCV::OpenCV() {}
 
 void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
 {
-    std::vector<Algorithms::pts> SortedX = alg.mergeSortX(inputCloud);
-    std::vector<Algorithms::pts> SortedY = alg.mergeSortY(inputCloud);
-    xMin = SortedX.front().x;
-    xMax = SortedX.back().x;
-    yMin = SortedY.front().y;
-    yMax = SortedY.back().y;
-    //std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
-
-    //int imgRow = ((abs(xMin))+xMax)+1;
-    //int imgCol = ((abs(yMin))+yMax)+1;
     int imgRow = 1280;
     int imgCol = 1280;
 
@@ -39,17 +29,20 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
         {
             row = (int)(x+(1280/2));
             col = (int)(y+(1280/2));
-            if (z > 1 && z < 75)
+            if(abs(y) < 1280/2 && abs(x) < 1280/2)
             {
-                //std::cout << row << " - " << col << " - " << z << std::endl;
-                cvCloudPt[row*imgCol+col] = z;
-                floatImg.at<float>(row,col) = z;
+                if (z > 1 && z < 750)
+                {
+                    cvCloudPt[row*imgCol+col] = z;
+                    floatImg.at<float>(row,col) = z;
+                }
+                else if(z < 750)
+                {
+                    cvCloudPt[row*imgCol+col] = 0;
+                    floatImg.at<float>(row,col) = 0.0f;
+                }
             }
-            else
-            {
-                cvCloudPt[row*imgCol+col] = 0;
-                floatImg.at<float>(row,col) = 0.0f;
-            }
+
         }
     }
     orgImage = cvCloud;
@@ -57,8 +50,6 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
     floatImage = floatImg;
     //cv::imshow("cvCloud", cvCloud);
     //cv::waitKey(0);
-    SortedX.clear();
-    SortedY.clear();
 }
 
 void OpenCV::loadPlane(std::vector<Algorithms::pts> planeCloud)

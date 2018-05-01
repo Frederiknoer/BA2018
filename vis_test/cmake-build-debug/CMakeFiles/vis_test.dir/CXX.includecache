@@ -119,8 +119,6 @@ Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
 PclPlane.h
 /home/fred/Git/BA2018/vis_test/PclPlane.h
-rsCam.h
-/home/fred/Git/BA2018/vis_test/rsCam.h
 OpenCV.h
 /home/fred/Git/BA2018/vis_test/OpenCV.h
 SafeQueue.h
@@ -128,10 +126,6 @@ SafeQueue.h
 thread
 -
 iostream
--
-cstdlib
--
-pthread.h
 -
 
 /home/fred/Git/BA2018/vis_test/rsCam.cpp
@@ -146,6 +140,8 @@ Eigen/SVD
 cstring
 -
 iostream
+-
+boost/thread/thread.hpp
 -
 
 /usr/include/eigen3/Eigen/Cholesky

@@ -16,20 +16,17 @@ rsCam::rsCam(int x, int y, int fps)
     }
     //config cfg;
     _cfg.enable_stream(RS2_STREAM_DEPTH,x,y,RS2_FORMAT_Z16,fps);
-    //_rgb.enable_stream(RS2_STREAM_COLOR,1280,720,RS2_FORMAT_RGB8,fps);
+
     auto depth_sens = dev.first<depth_sensor>();
     depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
 
     _pipe = new pipeline();
-    _pipe2 = new pipeline();
 
 }
 bool rsCam::startStream()
 {
-    //_pipe2->start(_rgb);
     _pipe->start(_cfg);
     for (int i = 0; i < 30; i++)_pipe->wait_for_frames();
-    //for (int i = 0; i < 30; i++)_pipe2->wait_for_frames();
     return true;
 }
 const rs2::vertex* rsCam::RqSingleFrame()
@@ -37,14 +34,12 @@ const rs2::vertex* rsCam::RqSingleFrame()
     const vertex* list;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            filtering(depth, 10);
+            //filtering(depth, 10);
             pointcloud pc;
             _pts = pc.calculate(depth);
             list = _pts.get_vertices();
         }
     }
-    /*for (int i = 0 ; i < _pts.size();i++)
-       std::cout << list[i].x;*/
     if (list != nullptr)
     {
         return list;
@@ -52,11 +47,33 @@ const rs2::vertex* rsCam::RqSingleFrame()
     else throw std::runtime_error("Can't fint dpeth stream");
 }
 
-const void* rsCam::RqSingleRGB()
+rs2::frameset rsCam::RqDepthFrame()
 {
-    rs2::frameset frames;
-    frames = _pipe2->wait_for_frames();
-        return frames.get_color_frame().get_data();
+    for (auto frames : _pipe->wait_for_frames()) {
+        //if (auto depth = frames.as<rs2::frame>()) {
+            return frames;
+        //}
+    }
+}
+frmdata rsCam::RqFrameData()
+{
+    frmdata fd;
+
+    for (auto&& frames : _pipe->wait_for_frames()) {
+        if (auto depth = frames.as<depth_frame>()) {
+            //filtering(depth, 10);
+            pointcloud pc;
+            _pts = pc.calculate(depth);
+            fd.vtx = _pts.get_vertices();
+            fd.size = _pts.size();
+            fd.timestamp = depth.get_timestamp();
+        }
+    }
+    if (fd.vtx != nullptr)
+    {
+        return fd;
+    }
+    else throw std::runtime_error("Can't fint dpeth stream");
 }
 Eigen::MatrixXf rsCam::RqMatrix()
 {
@@ -92,11 +109,10 @@ void rsCam::filtering(depth_frame& frame, int i)
     disparity_transform disparity2Depth(false);
 
     spatial_filter spat;
-    //temporal_filter temp;
+    temporal_filter temp;
 
-    spat.set_option(RS2_OPTION_HOLES_FILL, 3);
+    spat.set_option(RS2_OPTION_HOLES_FILL, 4);
     frame = depth2Disparity.process((frame));
-    /*
     for (int j = 0; j < i;j++)
         for(auto && frames : _pipe->wait_for_frames())
         {
@@ -105,7 +121,6 @@ void rsCam::filtering(depth_frame& frame, int i)
                 frame = temp.process(disp);
             }
         }
-       */
     frame = spat.process(frame);
     frame = disparity2Depth.process(frame);
 }
