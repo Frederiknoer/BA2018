@@ -43,7 +43,7 @@ private:
 struct node
 {
 	float value = 0.0f;
-	node* next;
+	node* next = NULL;
 };
 class llist
 {
@@ -53,16 +53,16 @@ public:
 		head = NULL;
 		tail = NULL;
 	}
+	bool isEmpty() { return head == NULL;}
 	void append(float value)
 	{
 		node *temp = new node;
 		temp->value = value;
 		temp->next = NULL;
-		if (head == NULL)
+		if (isEmpty())
 		{
 			head = temp;
 			tail = temp;
-			temp = NULL;
 		}
 		else
 		{
@@ -70,10 +70,24 @@ public:
 			tail = temp;
 		}
 	}
+	void appendList(llist l)
+	{
+		node* temp = l.head;
+		while (temp != NULL)
+		{
+			insertSort(temp->value);
+			temp = temp->next;
+		}
+	}
 	void insertSort(float value)
 	{
 		node *temp = new node;
-		if (head->value > value)
+		if (isEmpty())
+		{
+			head = temp;
+			tail = temp;
+		}
+		else if (head->value > value)
 		{
 			temp->value = value;
 			temp->next = head;
@@ -97,7 +111,7 @@ public:
 	{
 		node *temp = head;
 		node *temp2 = head;
-		if (head == NULL)
+		if (isEmpty())
 			return 0.0f;
 		while (temp2 != NULL && temp2->next != NULL)
 		{
@@ -108,7 +122,7 @@ public:
 	}
 	float average()
 	{
-		if (head == NULL)
+		if (isEmpty())
 			return 0.0f;
 		node *temp = new node;
 		temp = head;
@@ -120,7 +134,7 @@ public:
 			ite++;
 			temp = temp->next;
 		}
-		std::cout << sum / (float)ite << std::endl;
+		//std::cout << sum / (float)ite << std::endl;
 		return sum / (float)ite;
 	}
 	/*void display()

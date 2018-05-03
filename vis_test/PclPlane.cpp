@@ -21,10 +21,13 @@ void PclPlane::insertCloud(std::vector<Algorithms::pts> in_cloud)
     PointCloud<PointXYZ>::Ptr cloud_ (new PointCloud<PointXYZ>);
     for(int i = 0; i < in_cloud.size(); i++)
     {
-        tempPoint.x = in_cloud[i].x*(nX[0]+nX[1]+nX[2]);
-        tempPoint.y = in_cloud[i].y*(nY[0]+nY[1]+nY[2]);
-        tempPoint.z = in_cloud[i].z*(nZ[0]+nZ[1]+nZ[2]);
-        cloud_->push_back(tempPoint);
+       // tempPoint.x = in_cloud[i].x*(nX[0]+nX[1]+nX[2]);
+       // tempPoint.y = in_cloud[i].y*(nY[0]+nY[1]+nY[2]);
+    	   // tempPoint.z = in_cloud[i].z*(nZ[0]+nZ[1]+nZ[2]);
+		tempPoint.x = in_cloud[i].x;
+        tempPoint.y = in_cloud[i].y;
+        tempPoint.z = in_cloud[i].z;        
+		cloud_->push_back(tempPoint);
     }
     input_cloud = cloud_;
     cout << "Cloud Loaded to Class ..." << endl;
@@ -150,7 +153,7 @@ float PclPlane::getDistToPlane(float x, float y, float z)
     float distNum = coeffA*x + coeffB*y + coeffC*z + coeffD;
     float sumOfSquares = (coeffA*coeffA)+(coeffB*coeffB)+(coeffC*coeffC);
     float distDenum = sqrt(sumOfSquares);
-
+	
     if((distNum/distDenum) > 0.0f)
         return 0.0f;
     return abs(distNum/distDenum);
@@ -403,11 +406,17 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 {
 	for (int i = 0; i < rs.size; i++)
 	{
-		if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) < 7.5)
-		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > 7.5 && rs.vtx[i].z > 0.0 && rs.vtx[i].z < 1000.0)
+		if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 6.0f)
+		if ((getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f) > 7.5f) && (rs.vtx[i].z*1000.0f > 0.0f) && (rs.vtx[i].z*1000.0f < 1000.0f))
+					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
+											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));*/
+					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0,
+											rs.vtx[i].y*1000.0,
+											rs.vtx[i].z*1000.0));*/
 					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
-											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));
+											getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f)));
 	}
 }
 
