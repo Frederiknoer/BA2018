@@ -23,6 +23,9 @@ public:
     void create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud);
     void threshold(char ThreshType, float pointThresh);
 
+    void interPolate();
+    float getMedian(Algorithms::pts pt);
+
     void findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
     void findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
 

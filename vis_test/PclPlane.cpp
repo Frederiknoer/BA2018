@@ -212,13 +212,12 @@ PointCloud<PointXYZRGB>::Ptr PclPlane::mergeCloudsColor(PointCloud<PointXYZ>::Pt
 PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement)
 {
     PointCloud<PointXYZ>::Ptr cloud_filtered (new PointCloud<PointXYZ>);
-
     cloud_filtered->clear();
 
-    float minX = corners[0] - xDisplacement;
-    float maxX = corners[2] - xDisplacement;
-    float minY = corners[1] - yDisplacement;
-    float maxY = corners[3] - yDisplacement;
+    float minY = corners[0] - xDisplacement;
+    float maxY = corners[2] - xDisplacement;
+    float minX = corners[1] - yDisplacement;
+    float maxX = corners[3] - yDisplacement;
 
     float x,y,z;
     for(int i = 0; i < outlier_cloud->points.size(); i++)

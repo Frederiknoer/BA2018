@@ -5,6 +5,7 @@
 #include "SafeQueue.h"
 #include <thread>
 #include <iostream>
+#include <pcl/io/obj_io.h>
 
 using namespace std;
 
@@ -66,13 +67,11 @@ void volumeEstimate()
     std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
     if(outlierVector.size() > 4)
         cout << "bad WS" << endl;
-    cout << "X dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   Y dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
-    outlierVector[0] = outlierVector[0] + 10; //x
-    outlierVector[1] = outlierVector[1] + 10; //y
-    outlierVector[2] = outlierVector[2] - 10; //x
-    outlierVector[3] = outlierVector[3] - 200; //y
-
-    outlierVector[3] - outlierVector[1];
+    outlierVector[0] = outlierVector[0] + 10; //min y
+    outlierVector[1] = outlierVector[1] + 150; //min x
+    outlierVector[2] = outlierVector[2] - 10; //max y
+    outlierVector[3] = outlierVector[3] - 100; //max x
+    cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
 
     cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
     emptyTrayVec = sq.dequeue();
@@ -82,9 +81,10 @@ void volumeEstimate()
     cout << "Press Enter" << endl;
     cin.get();
     cout << "... " << endl;
-    sq.clearQueue();
+
     while(true)
     {
+        sq.clearQueue(); // ---------------------------------<<< move this out of while!
         objVec = sq.dequeue();
 
         switch(method)
@@ -118,8 +118,9 @@ void volumeEstimate()
                 ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2));
 
                 ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
-                ocvGarment.threshold('N', 7.5);
-                ocvGarment.findBoundingBox(100, 750);
+                ocvGarment.threshold('N', 10);
+                ocvGarment.findBoundingBox(100, 950);
+                ocvGarment.interPolate();
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
                 break;
             }
@@ -130,7 +131,7 @@ void volumeEstimate()
 
                 ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
-                ocvGarment.findRoatedBoundingBox(150, 750);
+                ocvGarment.findRoatedBoundingBox(150, 950);
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
                 break;
             }
@@ -143,36 +144,45 @@ void volumeEstimate()
                 objCloud->clear();
                 for(int i = 0; i < objVec.size(); i ++)
                 {
-                    tempPoint.x = objVec[i].x * 1000.0f;
-                    tempPoint.y = objVec[i].y * 1000.0f;
-                    tempPoint.z = objVec[i].z * 1000.0f;
+                    tempPoint.x = objVec[i].x;
+                    tempPoint.y = objVec[i].y;
+                    tempPoint.z = objVec[i].z;
                     objCloud->points.push_back(tempPoint);
                 }
+                cout << objCloud->size() << endl;
 
-                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
+                cout << TrayVec.size() << endl;
+                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2);
                 PclPlane pclObj;
+                cout << emptyTrayVec_f.size() << endl;
                 pclObj.insertCloud(emptyTrayVec_f);
                 pclObj.findPlane();
 
                 static double area = 0.0;
                 static double volume = 0.0;
                 static double sumVolume;
+                cout << "statics generated" << endl;
 
 
                 sumVolume = 0.0;
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
-                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, abs(ocvWS.xMin), abs(ocvWS.yMin));
+                cout << objCloud->size() << endl;
+                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, 1280/2, 1280/2);
+                cout << obj_cloud_f->size() << endl;
 
                 // Normal estimation*
+                cout << "Starting normal estimation..." << endl;
                 pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> n;
                 pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
                 pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
+                cout << "Setting up tree" << endl;
                 tree->setInputCloud (obj_cloud_f);
                 n.setInputCloud (obj_cloud_f);
                 n.setSearchMethod (tree);
-                n.setKSearch (20);
+                n.setKSearch (150);
                 n.compute (*normals);
+                cout << "Normals computed" << endl;
                 //* normals should not contain the point normals + surface curvatures
 
                 // Concatenate the XYZ and normal fields*
@@ -180,6 +190,7 @@ void volumeEstimate()
                 pcl::concatenateFields (*obj_cloud_f, *normals, *cloud_with_normals);
                 //* cloud_with_normals = cloud + normals
 
+                cout << "Creating search tree" << endl;
                 // Create search tree*
                 pcl::search::KdTree<pcl::PointNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointNormal>);
                 tree2->setInputCloud (cloud_with_normals);
@@ -189,22 +200,26 @@ void volumeEstimate()
                 pcl::PolygonMesh triangles;
 
                 // Set the maximum distance between connected points (maximum edge length)
-                gp3.setSearchRadius (25);
-
+                gp3.setSearchRadius (100);
+                cout << "radius sat" << endl;
                 // Set typical values for the parameters
-                gp3.setMu (2.5);
-                gp3.setMaximumNearestNeighbors (50);
-                gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
-                gp3.setMinimumAngle(M_PI/18); // 10 degrees
-                gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
+                gp3.setMu (3.5);
+                gp3.setMaximumNearestNeighbors (250);
+                gp3.setMaximumSurfaceAngle(M_PI/3); // 45 degrees
+                gp3.setMinimumAngle(M_PI/20); // 10 degrees
+                gp3.setMaximumAngle(2*M_PI/2.5); // 120 degrees
                 gp3.setNormalConsistency(false);
+
+                cout << "gp3 done" << endl;
 
                 // Get result
                 gp3.setInputCloud (cloud_with_normals);
                 gp3.setSearchMethod (tree2);
                 gp3.reconstruct (triangles);
 
-                triangles.polygons.size();
+                //triangles.polygons.size();
+                pcl::io::saveOBJFile("triangleMesh", triangles,5);
+                cout << "Saved" << endl;
 
             }
             default :

@@ -3,6 +3,7 @@
 //
 
 
+#include <iostream>
 #include "Algorithms.h"
 
 Algorithms::Algorithms() {}
@@ -12,10 +13,11 @@ std::vector<Algorithms::pts> Algorithms::removeOutliers(std::vector<pts> inputVe
     std::vector<pts> filteredVec = {};
     //filteredVec.clear();
 
-    float minX = corners[1] - xDisplacement;
-    float maxX = corners[3] - xDisplacement;
-    float minY = corners[0] - yDisplacement;
-    float maxY = corners[2] - yDisplacement;
+    float minY = corners[0] - xDisplacement;
+    float maxY = corners[2] - xDisplacement;
+
+    float minX = corners[1] - yDisplacement;
+    float maxX = corners[3] - yDisplacement;
 
     float x,y,z;
     for(int i = 0; i < inputVec.size(); i++)
@@ -47,6 +49,7 @@ void Algorithms::leastSquarSVD(std::vector<pts> input)
     coeffB = eig(1);
     coeffC = 1.0f;
     coeffD = eig(2);
+    std::cout << coeffA << std::endl << coeffB << std::endl << coeffC << std::endl << coeffD << std::endl;
 }
 
 float Algorithms::getDistToPlane(float x, float y, float z)

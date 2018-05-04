@@ -1,0 +1,14 @@
+####
+# OBJ dataFile simple version. File name: triangleMesh
+# Vertices: 1
+# Vertices normals : 1
+# Faces: 0
+####
+# List of Vertices, with (x,y,z) coordinates, w is optional.
+v 485.35 244.03 4.65e+05
+# 1 vertices
+# Normals in (x,y,z) form; normals might not be unit.
+vn nan nan nan
+# 1 vertices normals
+# Face Definitions
+# End of File

@@ -31,7 +31,7 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
             col = (int)(y+(1280/2));
             if(abs(y) < 1280/2 && abs(x) < 1280/2)
             {
-                if (z > 1 && z < 750)
+                if (z > 1 && z < 75)
                 {
                     cvCloudPt[row*imgCol+col] = z;
                     floatImg.at<float>(row,col) = z;
@@ -59,18 +59,35 @@ void OpenCV::loadPlane(std::vector<Algorithms::pts> planeCloud)
 
 void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud)
 {
-    std::vector<Algorithms::pts> SortedX = alg.mergeSortX(inputCloud);
-    std::vector<Algorithms::pts> SortedY = alg.mergeSortY(inputCloud);
-    xMin = SortedX.front().x;
-    xMax = SortedX.back().x;
-    yMin = SortedY.front().y;
-    yMax = SortedY.back().y;
-    //std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
+    //std::vector<Algorithms::pts> SortedX = alg.mergeSortX(inputCloud);
+    //std::vector<Algorithms::pts> SortedY = alg.mergeSortY(inputCloud);
+    //xMin = SortedX.front().x;
+    //xMax = SortedX.back().x;
+    //yMin = SortedY.front().y;
+    //yMax = SortedY.back().y;
 
+    float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
+    for (int i = 0 ; i < inputCloud.size();i++)					// Find corners
+    {
+        if (inputCloud[i].x < minX) minX = inputCloud[i].x;
+        else if  (inputCloud[i].x > maxX) maxX = inputCloud[i].x;
 
+        if (inputCloud[i].y < minY) minY = inputCloud[i].y;
+        else if  (inputCloud[i].y > maxY) maxY = inputCloud[i].y;
+    }
+
+    xMin = minX;
+    yMin = minY;
+    xMax = maxX;
+    yMax = maxY;
+
+    std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
 
     int imgRow = ((abs(xMin))+xMax)+1;
     int imgCol = ((abs(yMin))+yMax)+1;
+    //int imgRow = (xMax - xMin) + 1;
+    //int imgCol = (yMax - yMin) + 1;
+    std::cout << imgRow << " - " << imgCol << std::endl;
 
     cv::Mat floatImg(imgRow, imgCol, CV_32FC1, cv::Scalar(0));
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
@@ -109,8 +126,8 @@ void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud
     floatImage = floatImg;
     //cv::imshow("cvCloud", cvCloud);
     //cv::waitKey(0);
-    SortedX.clear();
-    SortedY.clear();
+    //SortedX.clear();
+    //SortedY.clear();
 
 }
 
@@ -153,6 +170,7 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
     //std::cout << "Bounding boxes: " << boundingBoxes.size() << std::endl;
 
     //Draws the bounding boxes
+
     cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
     drawing = orgImage;
 
@@ -165,6 +183,7 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
     //cv::waitKey(0);
+
 
 }
 
@@ -192,7 +211,7 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
 
     boundingBoxes = rectThresh;
     std::cout << boundingBoxes.size() << std::endl;
-
+/*
     cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
     drawing = orgImage;
 
@@ -208,7 +227,7 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
     //cv::waitKey(0);
-
+*/
 
 }
 
@@ -238,4 +257,50 @@ std::vector<float> OpenCV::getBoundingBoxCorners()
     }
     //std::cout << "Bounding boxes returned(" << boxVec.size() <<")" << std::endl;
     return boxVec;
+}
+
+void OpenCV::interPolate()
+{
+    //std::cout << "starting interpolation" << std::endl;
+    std::vector<float> corners = getBoundingBoxCorners();
+    Algorithms::pts pt;
+    for(int y = corners[0] + 1; y < corners[2] - 1; y++)
+        for(int x = corners[1] + 1; x < corners[3] - 1; x++)
+        {
+            if(floatImage.at<float>(x,y) == 0)
+            {
+                pt.x = x; pt.y = y; pt.z = floatImage.at<float>(x,y);
+                floatImage.at<float>(x,y) = getMedian(pt);
+            }
+        }
+}
+
+float OpenCV::getMedian(Algorithms::pts pt)
+{
+    //std::cout << "get median" << std::endl;
+    float perimeter[8] = {};
+
+    perimeter[0] = floatImage.at<float>(pt.x - 1, pt.y + 1);
+    perimeter[1] = floatImage.at<float>(pt.x, pt.y + 1);
+    perimeter[2] = floatImage.at<float>(pt.x + 1, pt.y + 1);
+    perimeter[3] = floatImage.at<float>(pt.x + 1, pt.y);
+    perimeter[4] = floatImage.at<float>(pt.x + 1, pt.y - 1);
+    perimeter[5] = floatImage.at<float>(pt.x, pt.y - 1);
+    perimeter[6] = floatImage.at<float>(pt.x - 1, pt.y - 1);
+    perimeter[7] = floatImage.at<float>(pt.x - 1, pt.y);
+
+    float sum = 0;
+    int counter = 0;
+    for(int i = 0; i < 8; i++)
+    {
+        if(perimeter[i] != 0)
+        {
+            counter++;
+            sum += perimeter[i];
+        }
+    }
+    if (counter > 3)
+        return (sum/counter);
+    else
+        return 0;
 }

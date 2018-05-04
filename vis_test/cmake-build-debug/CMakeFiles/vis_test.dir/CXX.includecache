@@ -7,6 +7,8 @@
 #IncludeRegexTransform: 
 
 /home/fred/Git/BA2018/vis_test/Algorithms.cpp
+iostream
+-
 Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
 
@@ -126,6 +128,8 @@ SafeQueue.h
 thread
 -
 iostream
+-
+pcl/io/obj_io.h
 -
 
 /home/fred/Git/BA2018/vis_test/rsCam.cpp
@@ -2320,6 +2324,16 @@ pcl/io/lzf.h
 
 /usr/local/include/pcl-1.8/pcl/io/lzf.h
 pcl/pcl_macros.h
+-
+
+/usr/local/include/pcl-1.8/pcl/io/obj_io.h
+pcl/pcl_macros.h
+-
+pcl/TextureMesh.h
+-
+pcl/PolygonMesh.h
+-
+pcl/io/file_io.h
 -
 
 /usr/local/include/pcl-1.8/pcl/io/pcd_io.h
