@@ -406,8 +406,9 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 {
 	for (int i = 0; i < rs.size; i++)
 	{
-		if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 6.0f)
-		if ((getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f) > 7.5f) && (rs.vtx[i].z*1000.0f > 0.0f) && (rs.vtx[i].z*1000.0f < 1000.0f))
+		//if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 5.0f)
+		if ( rs.vtx[i].x < 356.996f && rs.vtx[i].x > -386.93f && rs.vtx[i].y < 217.987 && rs.vtx[i].y > -281.999f)
+		if ((getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f) > 7.5f) &&(rs.vtx[i].z*1000.0f > 0.0f) && (rs.vtx[i].z*1000.0f < 1000.0f))
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
 											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));*/

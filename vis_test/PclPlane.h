@@ -70,9 +70,9 @@ public:
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
-	float nX[3] = {0.9974f, 0.0043f,-0.072f};
-	float nY[3] = {0.0029f, -0.9998f,-0.0193f};
-	float nZ[3] = {0.0720f, -0.0190f,0.9972f}; 
+	float nX[3] = {0.9938f, 0.0058f,-0.1108f};
+	float nY[3] = {0.0042f, -0.9999f,-0.0146f};
+	float nZ[3] = {0.1109f, -0.0140f,0.9937f}; 
 /*
 Coeff A: 0.152994
 Coeff B: -0.118216

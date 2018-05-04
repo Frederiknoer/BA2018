@@ -3,13 +3,20 @@
 #include "Algorithms.h"
 
 
-#define conv_velocity  0.0f 	//576.3f		// mm / ms
+#define conv_velocity 576.3f		// mm / ms
 #define RSx 1280
 #define RSy 720
 #define fps  6
 
-
-bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
+void measureVelocity(rsCam& cam, PclPlane & plan)
+{
+	for (int i = 0;i<10;i++)
+	{
+		auto frmdata = cam.RqFrameData();
+		std::cout << i << ":  " << std::endl;
+	}
+}
+bool initialize(rsCam& cam, PclPlane& plan)			// Saves pcd files for finding normal vectors
 {
 	PointCloud<PointXYZ>::Ptr init_cloud (new PointCloud<PointXYZ>);
 	std::cout << "Press enter to take first picture" << std::endl;
@@ -18,10 +25,13 @@ bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
 	auto rsFrame = cam.RqSingleFrame();
  	for(int i = 0; i < (RSx*RSy); i ++)
     {
+		if (plan.getDistToPlane(rsFrame[i].x*1000.0f,rsFrame[i].y*1000.0f,rsFrame[i].z*1000.0f) > 7.5f)
+		{
         tempPoint.x = rsFrame[i].x * 1000.0f;
         tempPoint.y = rsFrame[i].y * 1000.0f;
         tempPoint.z = rsFrame[i].z * 1000.0f;
 		init_cloud->push_back(tempPoint);
+		}
     }
 	pcl::io::savePCDFileASCII ("movement1.pcd", *init_cloud);
 	std::cout << "File saved as movement1.pcd" << std::endl;
@@ -32,10 +42,13 @@ bool initialize(rsCam& cam)			// Saves pcd files for finding normal vectors
 	rsFrame = cam.RqSingleFrame();
  	for(int i = 0; i < (RSx*RSy); i ++)
     {
+		if (plan.getDistToPlane(rsFrame[i].x*1000.0f,rsFrame[i].y*1000.0f,rsFrame[i].z*1000.0f) > 7.5f)
+		{
         tempPoint.x = rsFrame[i].x * 1000.0f;
         tempPoint.y = rsFrame[i].y * 1000.0f;
         tempPoint.z = rsFrame[i].z * 1000.0f;
 		init_cloud->push_back(tempPoint);
+		}
     }
 	pcl::io::savePCDFileASCII ("movement2.pcd", *init_cloud);
 	std::cout << "File saved as movement2.pcd" << std::endl;
@@ -112,13 +125,13 @@ float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int 
 		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
 		//std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
 //		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
-		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].append(pc->points[i].z);		
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
 	}
 	std::cout << "her" << endl;
 	for (int i = 0; i <= resX;i++)
 		for(int j = 0; j <= resY;j++)
 		{
-			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
+			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
 			{
 				AccMat[i][j].append(AccMat[i-1][j].average());
 				AccMat[i][j].append(AccMat[i][j-1].average());
@@ -129,8 +142,8 @@ float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int 
 				AccMat[i][j].append(AccMat[i+1][j-1].average());
 				AccMat[i][j].append(AccMat[i+1][j+1].average());
 				AccMat[i][j].append(AccMat[i-1][j+1].average());
-			}
-			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
+			}*/
+			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
 			{
 				AccMat[i][j].insertSort(AccMat[i-1][j].median());
 				AccMat[i][j].insertSort(AccMat[i][j-1].median());
@@ -141,8 +154,8 @@ float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int 
 				AccMat[i][j].insertSort(AccMat[i+1][j-1].median());
 				AccMat[i][j].insertSort(AccMat[i+1][j+1].median());
 				AccMat[i][j].insertSort(AccMat[i-1][j+1].median());
-			}*/
-			sum += AccMat[i][j].average()*stepX*stepY;
+			}
+			sum += AccMat[i][j].median()*stepX*stepY;
 			//cout << "sum " << sum << "\n";
 		} 
 	return sum;
@@ -153,7 +166,7 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	double firstframe = 0.0;
 	//double lastframe = 0.0;
 	float shift = 0.0f;
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		auto framedata = cam.RqFrameData();
 		if(i == 0)
@@ -162,19 +175,18 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 			shift = 0.0f;
 		}
 		else
-			shift = conv_velocity/(framedata.timestamp-firstframe);
+			shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
 		plan.InputToMultiCloud(multi_cloud,framedata,shift);
 		
 		//lastframe = framedata.timestamp;
 	}
-	//pcl::io::savePCDFileASCII ("multi_cloud.pcd", *multi_cloud);
-	for(int i = 0; i < 15; i++)
+	pcl::io::savePCDFileASCII ("multi_cloud", *multi_cloud);
+	for(int i = 0; i < 10; i++)
 	{
-		float sum1 =  NumIntegration(plan,multi_cloud,400+50*i,400+50*i);
-		std::cout << std::fixed <<  "sum " <<400+50*i << "x" <<400+50*i << " : " << sum1 << std::endl;
-		
-		//visualizingIntegration(plan,multi_cloud,500,500);
+		float sum1 =  NumIntegration(plan,multi_cloud,250+50*i,250+50*i);
+		std::cout << std::fixed <<  "sum " <<250+50*i << "x" <<250+50*i << " : " << sum1 << std::endl;
 	}
+	//visualizingIntegration(plan,multi_cloud,500,500);
 }
 
 int main (int argc, char * argv[]) try
@@ -222,7 +234,7 @@ int main (int argc, char * argv[]) try
 	pcl::io::savePCDFileASCII (std::to_string(i), *empty_tray_cloud);
 	empty_tray_cloud->clear();
 }*/
-	//initialize(Stcam);
+	//initialize(Stcam,planetest);
 	//for ( int i = 0; i < 10; i++)
 		movingVolumeEstimation(planetest,Stcam);
 	
