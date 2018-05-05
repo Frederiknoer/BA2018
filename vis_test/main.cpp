@@ -62,7 +62,8 @@ void volumeEstimate(std::vector<float> outlierVec)
     PointXYZ tempPoint;
     int method = 0;
     cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV 2D image projection(1), "
-            "OpenCV 2D image projection with minRect function(2), PCL triangulation(3)" << endl;
+            "OpenCV 2D image projection with minRect function(2), PCL triangulation(3), "
+         "Accumulation Matrix(4)"<< endl;
     cin >> method;
     cout << endl;
 
@@ -205,6 +206,11 @@ void volumeEstimate(std::vector<float> outlierVec)
                 pcl::io::saveOBJFile("triangleMesh", triangles,5);
                 cout << "Saved" << endl;
 
+            }
+            case 4 :
+            {
+                //PATRICK YOUR BASTARD! INSERT YOUR FUCNTION HERE
+                break;
             }
             default :
             {
