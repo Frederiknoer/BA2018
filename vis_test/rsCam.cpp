@@ -117,5 +117,6 @@ void rsCam::filtering(depth_frame& frame, int i)
 }
 rsCam::~rsCam()
 {
+	_pipe->stop();
     delete _pipe;
 }

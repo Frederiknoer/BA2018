@@ -10,10 +10,24 @@
 
 void measureVelocity(rsCam& cam, PclPlane & plan)
 {
-	for (int i = 0;i<10;i++)
+	PointCloud<PointXYZ>::Ptr vel_cloud (new PointCloud<PointXYZ>);
+	frmdata arr[4];
+	for (int i = 0;i<4;i++)
 	{
-		auto frmdata = cam.RqFrameData();
-		std::cout << i << ":  " << std::endl;
+		arr[i] = cam.RqFrameData();
+	}
+	double temp = 0.0;
+	for (int i = 0; i < 4;i++)
+	{
+		for(int j = 0; j < (arr[i].size); j ++)
+	 	{
+			if (plan.getDistToPlane(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f) > 7.5f)
+			{
+				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f));
+			}
+    	}
+	pcl::io::savePCDFileASCII ("velocity_" + std::to_string(arr[i].timestamp - temp), *vel_cloud);
+	temp = arr[i].timestamp;
 	}
 }
 bool initialize(rsCam& cam, PclPlane& plan)			// Saves pcd files for finding normal vectors
@@ -176,8 +190,9 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 		}
 		else
 			shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
-		plan.InputToMultiCloud(multi_cloud,framedata,shift);
+		plan.InputToMultiCloud(multi_cloud,framedata,0);
 		
+
 		//lastframe = framedata.timestamp;
 	}
 	pcl::io::savePCDFileASCII ("multi_cloud", *multi_cloud);
@@ -236,12 +251,13 @@ int main (int argc, char * argv[]) try
 }*/
 	//initialize(Stcam,planetest);
 	//for ( int i = 0; i < 10; i++)
-		movingVolumeEstimation(planetest,Stcam);
+	//movingVolumeEstimation(planetest,Stcam);
+	measureVelocity(Stcam,planetest);
 	
 	/*cout << multi_cloud_f->size() << endl;
 	multi_cloud_f->resize(multi_cloud_f->size());
 	pcl::io::savePCDFileASCII ("multi_cloud.pcd", *multi_cloud_f);*/
-
+	
     return EXIT_SUCCESS;
 }
 
