@@ -323,6 +323,7 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/boost.
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/file_io.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/impl/pcd_io.hpp
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/lzf.h
+CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/obj_io.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/io/pcd_io.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/kdtree/flann.h
 CMakeFiles/vis_test.dir/PclPlane.cpp.o: /usr/local/include/pcl-1.8/pcl/kdtree/impl/kdtree_flann.hpp

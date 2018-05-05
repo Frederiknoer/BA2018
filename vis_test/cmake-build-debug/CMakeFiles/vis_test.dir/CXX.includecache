@@ -99,6 +99,8 @@ pcl/features/normal_3d.h
 -
 pcl/surface/gp3.h
 -
+pcl/io/obj_io.h
+-
 Algorithms.h
 /home/fred/Git/BA2018/vis_test/Algorithms.h
 
@@ -128,8 +130,6 @@ SafeQueue.h
 thread
 -
 iostream
--
-pcl/io/obj_io.h
 -
 
 /home/fred/Git/BA2018/vis_test/rsCam.cpp

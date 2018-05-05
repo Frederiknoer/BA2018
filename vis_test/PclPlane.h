@@ -34,6 +34,7 @@
 
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
+#include <pcl/io/obj_io.h>
 
 #include "Algorithms.h"
 

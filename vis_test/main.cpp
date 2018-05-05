@@ -1,61 +1,36 @@
 #include "Algorithms.h"
 #include "PclPlane.h"
-//#include "rsCam.h"
 #include "OpenCV.h"
 #include "SafeQueue.h"
 #include <thread>
 #include <iostream>
-#include <pcl/io/obj_io.h>
+
 
 using namespace std;
 
 #define RSx 1280
 #define RSy 720
-#define fps 6
-#define convSpeed 576.3
+#define fps 15
 
 SafeQueue sq;
 
-
-void volumeEstimate()
+std::vector<float> initProgram()
 {
-    //rsCam Stcam(RSx,RSy,fps);
-    //Stcam.startStream();
-    //const rs2::vertex *rsFrame;
     int camPlace = 1;
-    int method = 0;
     cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2) ..." << endl;
     cin >> camPlace;
-    //cout << endl << "Enter conveyor speed ..." << endl;
-    //cin >> convSpeed;
-    cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV 2D image projection(1), "
-            "PCL Nearest Neighbor trapzoidal(2), OpenCV 2D image projection with minRect function(3), "
-            "PCL triangulation(4)"<< endl;
-    cin >> method;
-    cout << endl;
-    Algorithms algo;
+
     OpenCV ocvWS;
 
-
-    std::vector<Algorithms::pts> objVec(RSx*RSy);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    PointXYZ tempPoint;
-
-    cout << "Taking picture of empty plane..." << endl;
-
+    //cout << "Taking picture of empty plane..." << endl;
     auto rsFrame = sq.dequeue();
     std::vector<Algorithms::pts> emptyTrayVec(rsFrame.size());
-    std::vector<Algorithms::pts> TrayVec(rsFrame.size());
-    TrayVec = rsFrame;
-    cout << "loaded" << endl;
     for(int i = 0; i < rsFrame.size(); i++)
     {
         emptyTrayVec[i].x = rsFrame[i].x;
         emptyTrayVec[i].y = rsFrame[i].y;
         emptyTrayVec[i].z = rsFrame[i].z / 10.0f; //This is only for finding workspace!!!!!
     }
-
-    cout << "test" << endl;
     ocvWS.create2dDepthImage(emptyTrayVec);
 
     if(camPlace == 1)
@@ -65,48 +40,57 @@ void volumeEstimate()
 
     ocvWS.findBoundingBox(500, 1500);
     std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
+
     if(outlierVector.size() > 4)
         cout << "bad WS" << endl;
+
     outlierVector[0] = outlierVector[0] + 10; //min y
     outlierVector[1] = outlierVector[1] + 150; //min x
     outlierVector[2] = outlierVector[2] - 10; //max y
     outlierVector[3] = outlierVector[3] - 100; //max x
-    cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
+    //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
+    return outlierVector;
+}
 
-    cout << "Workspace has been found!" << endl << "Initialising plane estimation..." << endl;
-    emptyTrayVec = sq.dequeue();
 
-    cout << "Plane estimation Done! " << endl << "Insert garments and press enter: .. " << endl;
+void volumeEstimate(std::vector<float> outlierVec)
+{
+    std::vector<Algorithms::pts> TrayVec(RSx*RSy);
+    Algorithms algo;
+    std::vector<Algorithms::pts> objVec(RSx*RSy);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    PointXYZ tempPoint;
+    int method = 0;
+    cout << endl << "Choose method of operation; PointCloud subtraction(0), OpenCV 2D image projection(1), "
+            "OpenCV 2D image projection with minRect function(2), PCL triangulation(3)" << endl;
+    cin >> method;
+    cout << endl;
+
+    TrayVec = sq.dequeue();
+    cout << endl << "Program is ready!! Press enter and start inserting garments.." << endl;
     cin.get();
-    cout << "Press Enter" << endl;
-    cin.get();
-    cout << "... " << endl;
+    sq.clearQueue();
 
     while(true)
     {
-        sq.clearQueue(); // ---------------------------------<<< move this out of while!
         objVec = sq.dequeue();
 
         switch(method)
         {
             case 0 :
             {
-                cout << emptyTrayVec.size() << " - " << objVec.size() << endl;
                 static double traysum = 0.0;
-                std::vector<Algorithms::pts> TrayVec_f = algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2);
-                cout << TrayVec_f.size() << endl;
+                std::vector<Algorithms::pts> TrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
+
                 for(int i = 0; i < TrayVec_f.size(); i++)
                     traysum += sqrt(pow(TrayVec_f[i].x ,2) + pow(TrayVec_f[i].y ,2) + pow(TrayVec_f[i].z ,2));
-                cout << traysum << endl;
 
-                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2);
+
+                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2);
                 double objsum = 0.0;
-                cout << objVec_f.size() << endl;
+
                 for(int j = 0; j < objVec_f.size(); j++)
                     objsum += sqrt( (pow(objVec_f[j].x ,2)) + (pow(objVec_f[j].y ,2)) + (pow(objVec_f[j].z ,2)) );
-
-
-                cout << objsum << endl;
 
                 cout << "Volume: " << abs(traysum-objsum) << endl;
 
@@ -115,31 +99,31 @@ void volumeEstimate()
             case 1 : //OpenCv 2Dimage projection
             {
                 OpenCV ocvGarment;
-                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2));
+                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2));
 
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
+                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
                 ocvGarment.findBoundingBox(100, 950);
                 ocvGarment.interPolate();
+
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+
                 break;
             }
             case 2 : //OpenCv 2Dimage projection with roatated rectangle
             {
                 OpenCV ocvGarment;
-                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2));
+                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2));
 
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVector, 1280/2, 1280/2));
+                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
                 ocvGarment.findRoatedBoundingBox(150, 950);
+
                 cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+
                 break;
             }
-            case 3 : //PCL nearest neighbor trapzoidal
-            {
-                method = 4;
-            }
-            case 4 :
+            case 3 :
             {
                 objCloud->clear();
                 for(int i = 0; i < objVec.size(); i ++)
@@ -152,7 +136,7 @@ void volumeEstimate()
                 cout << objCloud->size() << endl;
 
                 cout << TrayVec.size() << endl;
-                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVector, 1280/2, 1280/2);
+                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
                 PclPlane pclObj;
                 cout << emptyTrayVec_f.size() << endl;
                 pclObj.insertCloud(emptyTrayVec_f);
@@ -167,7 +151,7 @@ void volumeEstimate()
                 sumVolume = 0.0;
                 PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
                 cout << objCloud->size() << endl;
-                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, 1280/2, 1280/2);
+                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVec, 1280/2, 1280/2);
                 cout << obj_cloud_f->size() << endl;
 
                 // Normal estimation*
@@ -231,16 +215,20 @@ void volumeEstimate()
     }
 }
 
-void getFrames()
+void getFrames(std::vector<float> WS, float speed)
 {
     rsCam cam(RSx,RSy,fps);
-
     std::vector<Algorithms::pts> tempVec(RSx*RSy);
+
     cam.startStream();
     frmdata rsFrame;
+
     double timeStamp = 0;
     double savedTimeStamp = 0;
-    float timeThresh = 1000;
+    float dist = WS[3] - WS[1];
+
+    float timeThresh = (dist/speed)*1000;
+
     while (true)
     {
         rsFrame = cam.RqFrameData();
@@ -262,20 +250,24 @@ void getFrames()
 
 int main (int argc, char * argv[]) try
 {
+    std::vector<float> workSpace;
+    float convSpeed = 0; //576.3
 
+    workSpace = initProgram();
+    cout << "Enter conveyor speed" << endl;
+    cin >> convSpeed; cout << endl;
 
     std::thread t1([&]()
     {
-        (getFrames());
+        (getFrames(workSpace, convSpeed));
     });
     std::thread t2([&]()
     {
-        (volumeEstimate());
+        (volumeEstimate(workSpace));
     });
 
     t1.join();
     t2.join();
-
 
     return EXIT_SUCCESS;
 }

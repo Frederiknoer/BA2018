@@ -324,6 +324,7 @@ CMakeFiles/vis_test.dir/PclPlane.cpp.o
  /usr/local/include/pcl-1.8/pcl/io/file_io.h
  /usr/local/include/pcl-1.8/pcl/io/impl/pcd_io.hpp
  /usr/local/include/pcl-1.8/pcl/io/lzf.h
+ /usr/local/include/pcl-1.8/pcl/io/obj_io.h
  /usr/local/include/pcl-1.8/pcl/io/pcd_io.h
  /usr/local/include/pcl-1.8/pcl/kdtree/flann.h
  /usr/local/include/pcl-1.8/pcl/kdtree/impl/kdtree_flann.hpp
