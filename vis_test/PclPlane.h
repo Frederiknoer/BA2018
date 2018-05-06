@@ -36,6 +36,7 @@
 #include <pcl/surface/gp3.h>
 #include <pcl/io/obj_io.h>
 
+#include "rsCam.h"
 #include "Algorithms.h"
 
 using namespace std;
@@ -44,6 +45,7 @@ using namespace pcl;
 #ifndef VIS_TEST_PCLPLANE_H
 #define VIS_TEST_PCLPLANE_H
 
+#define THRESHOLD 0.01
 
 class PclPlane {
 public:
@@ -60,7 +62,7 @@ public:
     PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement);
     void mergeSort(PointCloud<PointXYZ>::Ptr,int size);
 
-
+	void InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs,float shift);
 
 
     ~PclPlane();
@@ -69,7 +71,15 @@ public:
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
-
+	float nX[3] = {0.9938f, 0.0058f,-0.1108f};
+	float nY[3] = {0.0042f, -0.9999f,-0.0146f};
+	float nZ[3] = {0.1109f, -0.0140f,0.9937f}; 
+/*
+Coeff A: 0.152994
+Coeff B: -0.118216
+Coeff C: 1
+Coeff D: -455.011
+*/
 private:
     PointXYZ* mergeSortX(PointXYZ* arr, int l, int r);
     PointXYZ* mergeX(PointXYZ* arr, int l, PointXYZ* r, int m);

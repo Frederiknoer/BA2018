@@ -3,7 +3,10 @@
 //
 
 
+<<<<<<< HEAD
 #include <iostream>
+=======
+>>>>>>> origin/patrick
 #include "Algorithms.h"
 
 Algorithms::Algorithms() {}
@@ -49,7 +52,6 @@ void Algorithms::leastSquarSVD(std::vector<pts> input)
     coeffB = eig(1);
     coeffC = 1.0f;
     coeffD = eig(2);
-    std::cout << coeffA << std::endl << coeffB << std::endl << coeffC << std::endl << coeffD << std::endl;
 }
 
 float Algorithms::getDistToPlane(float x, float y, float z)
@@ -63,6 +65,7 @@ float Algorithms::getDistToPlane(float x, float y, float z)
     return std::abs(distNum/distDenum);
 }
 
+/*
 std::vector<Algorithms::pts> Algorithms::mergeSortX(std::vector<pts> input)
 {
     int size = input.size();
@@ -226,4 +229,8 @@ Algorithms::pts * Algorithms::mergeY(pts *arr, int l, pts *r, int m)
         k++;
     }
     return temp;
+
 }
+=======
+}*/
+////////////////////////////////////////////

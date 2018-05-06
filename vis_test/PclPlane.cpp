@@ -21,18 +21,35 @@ void PclPlane::insertCloud(std::vector<Algorithms::pts> in_cloud)
     PointCloud<PointXYZ>::Ptr cloud_ (new PointCloud<PointXYZ>);
     for(int i = 0; i < in_cloud.size(); i++)
     {
-        tempPoint.x = in_cloud[i].x;
+
+       // tempPoint.x = in_cloud[i].x*(nX[0]+nX[1]+nX[2]);
+       // tempPoint.y = in_cloud[i].y*(nY[0]+nY[1]+nY[2]);
+    	   // tempPoint.z = in_cloud[i].z*(nZ[0]+nZ[1]+nZ[2]);
+		tempPoint.x = in_cloud[i].x;
         tempPoint.y = in_cloud[i].y;
-        tempPoint.z = in_cloud[i].z;
-        cloud_->push_back(tempPoint);
+        tempPoint.z = in_cloud[i].z;        
+		cloud_->push_back(tempPoint);
     }
     input_cloud = cloud_;
     cout << "Cloud Loaded to Class ..." << endl;
 }
-
+/*void PclPlane::projectCloud()
+{
+	for (int i = 0; i < frm.size(); i++)
+	{
+		/*proj_cloud->Points[i].x = input_cloud->Points[i].x*(nX[0]+nX[1]+nX[2]);
+		proj_cloud->Points[i].y = input_cloud->Points[i].y*(nY[0]+nY[1]+nY[2]);
+		proj_cloud->Points[i].z = input_cloud->Points[i].z*(nZ[0]+nZ[1]+nZ[2]);*/
+		/*proj_cloud->points[i].x = frame[i].x*(nX[0]+nX[1]+nX[2]);
+		proj_cloud->points[i].y = frame[i].y*(nY[0]+nY[1]+nY[2]);
+		proj_cloud->points[i].z = frame[i].z*(nZ[0]+nZ[1]+nZ[2]);
+	}
+}*/
 void PclPlane::findPlane()
 {
+
     /*
+
     PointCloud<PointXYZ>::Ptr
             cloud_filtered (new PointCloud<PointXYZ>),
             cloud_p (new PointCloud<PointXYZ>),
@@ -53,7 +70,7 @@ void PclPlane::findPlane()
     seg.setModelType (SACMODEL_PLANE);
     seg.setMethodType (SAC_RANSAC);
     seg.setMaxIterations (1000);
-    seg.setDistanceThreshold (7.5); //THIS IS IN MILLIMETER IF THE PC IS IN METERS CHANGE !!!!!!!!!!!!!
+    seg.setDistanceThreshold (4); //THIS IS IN MILLIMETER IF THE PC IS IN METERS CHANGE !!!!!!!!!!!!!
 
     // Create the filtering object
     ExtractIndices<PointXYZ> extract;
@@ -85,9 +102,11 @@ void PclPlane::findPlane()
         i++;
     }
     cout << "RANSAC Done!" << endl;
+
     //plane_cloud->clear();
     */
     plane_cloud = input_cloud;
+   // plane_cloud = cloud_p;
 
     auto dataSize = (int)plane_cloud->size();
 
@@ -138,8 +157,8 @@ float PclPlane::getDistToPlane(float x, float y, float z)
     float distNum = coeffA*x + coeffB*y + coeffC*z + coeffD;
     float sumOfSquares = (coeffA*coeffA)+(coeffB*coeffB)+(coeffC*coeffC);
     float distDenum = sqrt(sumOfSquares);
-
-    if((distNum/distDenum) > 0.0)
+	
+    if((distNum/distDenum) > 0.0f)
         return 0.0f;
     return abs(distNum/distDenum);
 }
@@ -219,13 +238,15 @@ PointCloud<PointXYZ>::Ptr PclPlane::removeOutliers(PointCloud<PointXYZ>::Ptr out
     float minX = corners[1] - yDisplacement;
     float maxX = corners[3] - yDisplacement;
 
+
     float x,y,z;
     for(int i = 0; i < outlier_cloud->points.size(); i++)
     {
         x = outlier_cloud->points[i].x;
         y = outlier_cloud->points[i].y;
         z = outlier_cloud->points[i].z;
-        if ((x > minX && x < maxX && y > minY && y < maxY && z > 0)) //x > -500 && x < 380 && y > -175 && y < 215 && z > 0
+        if ((x > minX && x < maxX && y > minY && y < maxY && z > 0.0f)) //x > -500 && x < 380 && y > -175 && y < 215 && z > 0
+
             cloud_filtered->points.push_back(outlier_cloud->points[i]);
     }
     return cloud_filtered;
@@ -386,6 +407,23 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
-
+void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift)
+{
+	for (int i = 0; i < rs.size; i++)
+	{
+		//if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 5.0f)
+		if ( rs.vtx[i].x < 356.996f && rs.vtx[i].x > -386.93f && rs.vtx[i].y < 217.987 && rs.vtx[i].y > -281.999f)
+		if ((getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f) > 7.5f) &&(rs.vtx[i].z*1000.0f > 0.0f) && (rs.vtx[i].z*1000.0f < 1000.0f))
+					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
+											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));*/
+					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0,
+											rs.vtx[i].y*1000.0,
+											rs.vtx[i].z*1000.0));*/
+					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
+											getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f)));
+	}
+}
 
 PclPlane::~PclPlane() {}

@@ -55,10 +55,10 @@ rs2::frameset rsCam::RqDepthFrame()
         //}
     }
 }
+
 frmdata rsCam::RqFrameData()
 {
-    frmdata fd;
-
+	frmdata fd;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
             //filtering(depth, 10);
@@ -126,5 +126,6 @@ void rsCam::filtering(depth_frame& frame, int i)
 }
 rsCam::~rsCam()
 {
+	_pipe->stop();
     delete _pipe;
 }

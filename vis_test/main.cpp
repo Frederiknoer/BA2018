@@ -8,6 +8,7 @@
 
 using namespace std;
 
+#define conv_velocity 576.3f		// mm / ms
 #define RSx 1280
 #define RSy 720
 #define fps 15
@@ -252,7 +253,202 @@ void getFrames(std::vector<float> WS, float speed)
         }
     }
 }
+////////////////////
+void measureVelocity(rsCam& cam, PclPlane & plan)
+{
+	PointCloud<PointXYZ>::Ptr vel_cloud (new PointCloud<PointXYZ>);
+	frmdata arr[4];
+	for (int i = 0;i<4;i++)
+	{
+		arr[i] = cam.RqFrameData();
+	}
+	double temp = 0.0;
+	for (int i = 0; i < 4;i++)
+	{
+		for(int j = 0; j < (arr[i].size); j ++)
+	 	{
+			if (plan.getDistToPlane(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f) > 7.5f)
+			{
+				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f));
+			}
+    	}
+	pcl::io::savePCDFileASCII ("velocity_" + std::to_string(arr[i].timestamp - temp), *vel_cloud);
+	temp = arr[i].timestamp;
+	}
+}
+bool initialize(rsCam& cam, PclPlane& plan)			// Saves pcd files for finding normal vectors
+{
+	PointCloud<PointXYZ>::Ptr init_cloud (new PointCloud<PointXYZ>);
+	std::cout << "Press enter to take first picture" << std::endl;
+	std::cin.get();
+	PointXYZ tempPoint;
+	auto rsFrame = cam.RqSingleFrame();
+ 	for(int i = 0; i < (RSx*RSy); i ++)
+    {
+		if (plan.getDistToPlane(rsFrame[i].x*1000.0f,rsFrame[i].y*1000.0f,rsFrame[i].z*1000.0f) > 7.5f)
+		{
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		init_cloud->push_back(tempPoint);
+		}
+    }
+	pcl::io::savePCDFileASCII ("movement1.pcd", *init_cloud);
+	std::cout << "File saved as movement1.pcd" << std::endl;
 
+	init_cloud->clear();
+	std::cout << "Press enter to take second picture" << std::endl;
+	std::cin.get();
+	rsFrame = cam.RqSingleFrame();
+ 	for(int i = 0; i < (RSx*RSy); i ++)
+    {
+		if (plan.getDistToPlane(rsFrame[i].x*1000.0f,rsFrame[i].y*1000.0f,rsFrame[i].z*1000.0f) > 7.5f)
+		{
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		init_cloud->push_back(tempPoint);
+		}
+    }
+	pcl::io::savePCDFileASCII ("movement2.pcd", *init_cloud);
+	std::cout << "File saved as movement2.pcd" << std::endl;
+	return true;
+}
+void visualizingIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
+{
+	PointCloud<PointXYZ>::Ptr visualizePC (new PointCloud<PointXYZ>);
+	llist AccMat[resX+1][resY+1] = {};
+	float sum = 0.0f;
+	float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
+	for (int i = 0 ; i < pc->size();i++)					// Find corners
+	{
+		if (pc->points[i].x < minX) minX = pc->points[i].x;
+		else if  (pc->points[i].x > maxX) maxX = pc->points[i].x;
+
+		if (pc->points[i].y < minY) minY = pc->points[i].y;
+		else if  (pc->points[i].y > maxY) maxY = pc->points[i].y;
+	}
+	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+
+	for (int i = 0; i < pc->size(); i++)
+	{
+		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
+		//std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
+//		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
+	}
+	std::cout << "her" << endl;
+	for (int i = 0; i <= resX;i++)
+		for(int j = 0; j <= resY;j++)
+		{
+			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX+1 && j < resY+1)
+			{
+				AccMat[i][j].append(AccMat[i-1][j].average());
+				AccMat[i][j].append(AccMat[i][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j].average());
+				AccMat[i][j].append(AccMat[i][j+1].average());
+			}*/
+			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)
+			{
+				AccMat[i][j].insertSort(AccMat[i-1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j+1].median());
+
+				AccMat[i][j].insertSort(AccMat[i-1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j+1].median());
+				AccMat[i][j].insertSort(AccMat[i-1][j+1].median());
+			}
+			visualizePC->push_back(PointXYZ(float(i)*stepX,float(j)*stepY,AccMat[i][j].median()));
+		} 
+	pcl::io::savePCDFileASCII ("visualizeIntegration.pcd", *visualizePC);
+}
+float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int resY)
+{
+	llist AccMat[resX+1][resY+1] = {};
+	float sum = 0.0f;
+	float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
+	for (int i = 0 ; i < pc->size();i++)					// Find corners
+	{
+		if (pc->points[i].x < minX) minX = pc->points[i].x;
+		else if  (pc->points[i].x > maxX) maxX = pc->points[i].x;
+
+		if (pc->points[i].y < minY) minY = pc->points[i].y;
+		else if  (pc->points[i].y > maxY) maxY = pc->points[i].y;
+	}
+	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+	//std::cout << std::fixed << "stepX: " << stepX << " , stepY: " << stepY << std::endl; 
+	//std::cout << minX << " - " << maxX << " : " << minY << " - " << maxY << std::endl;
+	for (int i = 0; i < pc->size(); i++)
+	{
+		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
+		//std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
+//		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
+	}
+	std::cout << "her" << endl;
+	for (int i = 0; i <= resX;i++)
+		for(int j = 0; j <= resY;j++)
+		{
+			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
+			{
+				AccMat[i][j].append(AccMat[i-1][j].average());
+				AccMat[i][j].append(AccMat[i][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j].average());
+				AccMat[i][j].append(AccMat[i][j+1].average());
+
+				AccMat[i][j].append(AccMat[i-1][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j+1].average());
+				AccMat[i][j].append(AccMat[i-1][j+1].average());
+			}*/
+			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
+			{
+				AccMat[i][j].insertSort(AccMat[i-1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j+1].median());
+
+				AccMat[i][j].insertSort(AccMat[i-1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j+1].median());
+				AccMat[i][j].insertSort(AccMat[i-1][j+1].median());
+			}
+			sum += AccMat[i][j].median()*stepX*stepY;
+			//cout << "sum " << sum << "\n";
+		} 
+	return sum;
+}
+void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		// 
+{
+	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
+	double firstframe = 0.0;
+	//double lastframe = 0.0;
+	float shift = 0.0f;
+	for (int i = 0; i < 6; i++)
+	{
+		auto framedata = cam.RqFrameData();
+		if(i == 0)
+		{
+			firstframe = framedata.timestamp;
+			shift = 0.0f;
+		}
+		else
+			shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
+		plan.InputToMultiCloud(multi_cloud,framedata,0);
+		
+
+		//lastframe = framedata.timestamp;
+	}
+	pcl::io::savePCDFileASCII ("multi_cloud", *multi_cloud);
+	for(int i = 0; i < 10; i++)
+	{
+		float sum1 =  NumIntegration(plan,multi_cloud,250+50*i,250+50*i);
+		std::cout << std::fixed <<  "sum " <<250+50*i << "x" <<250+50*i << " : " << sum1 << std::endl;
+	}
+	//visualizingIntegration(plan,multi_cloud,500,500);
+}
 
 int main (int argc, char * argv[]) try
 {
@@ -275,6 +471,35 @@ int main (int argc, char * argv[]) try
     t1.join();
     t2.join();
 
+
+
+/*int main (int argc, char * argv[]) try
+{
+    PointCloud<PointXYZ>::Ptr empty_tray_cloud (new PointCloud<PointXYZ>);
+
+	rsCam Stcam(RSx,RSy,fps);
+	Stcam.startStream();
+	auto rsFrame = Stcam.RqSingleFrame();
+	PointXYZ tempPoint;
+    for(int i = 0; i < (RSx*RSy); i ++)
+    {
+        tempPoint.x = rsFrame[i].x * 1000.0f;
+        tempPoint.y = rsFrame[i].y * 1000.0f;
+        tempPoint.z = rsFrame[i].z * 1000.0f;
+		empty_tray_cloud->push_back(tempPoint);
+    }
+	 cout << "Empty Tray frame taken" << endl;
+	pcl::io::savePCDFileASCII ("Empty_tray", *empty_tray_cloud);
+    PclPlane planetest(empty_tray_cloud);
+	 cout << "Finding Plane" << endl;
+    planetest.findPlane();
+
+	empty_tray_cloud->clear();
+	std::cout << "Press enter to continue" << std::endl;
+	std::cin.get();
+
+	measureVelocity(Stcam,planetest);
+*/
     return EXIT_SUCCESS;
 }
 
@@ -288,101 +513,3 @@ catch (const exception & e)
     cerr << e.what() << endl;
     return EXIT_FAILURE;
 }
-
-/*
-pcl::PointCloud<pcl::PointXYZ>::Ptr trayCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr objCloud2 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointXYZ tempPoint;
-
-    PclPlane test;
-    rsCam Stcam(RSx,RSy,fps);
-    Stcam.startStream();
-    auto rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        trayCloud->points.push_back(tempPoint);
-    }
-    trayCloud->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest0.pcd", *trayCloud);
-    PclPlane test2(trayCloud);
-    test.visualizeCloud(trayCloud);
-    rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        objCloud->points.push_back(tempPoint);
-    }
-    objCloud->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest1.pcd", *objCloud);
-    test.visualizeCloud(objCloud);
-    rsFrame = Stcam.RqSingleFrame();
-    for(int i = 0; i < (RSx*RSy); i ++)
-    {
-        tempPoint.x = rsFrame[i].x * 1000.0f;
-        tempPoint.y = rsFrame[i].y * 1000.0f;
-        tempPoint.z = rsFrame[i].z * 1000.0f;
-        objCloud2->points.push_back(tempPoint);
-    }
-    objCloud2->resize(RSy*RSx);
-    pcl::io::savePCDFileASCII ("disttest2.pcd", *objCloud2);
-    test.visualizeCloud(objCloud2);
-*/
-
-/*
-objCloud->clear();
-                for(int i = 0; i < objVec.size(); i ++)
-                {
-                    tempPoint.x = objVec[i].x * 1000.0f;
-                    tempPoint.y = objVec[i].y * 1000.0f;
-                    tempPoint.z = objVec[i].z * 1000.0f;
-                    objCloud->points.push_back(tempPoint);
-                }
-
-                std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(emptyTrayVec, outlierVector, 1280/2, 1280/2);
-                PclPlane pclObj;
-                pclObj.insertCloud(emptyTrayVec_f);
-                pclObj.findPlane();
-
-                static int K = 2;
-                static int NofNeighbor = 0;
-                PointXYZ A, B, C;
-                PointXYZ searchPoint;
-
-                std::vector<int> pointIdx(K);
-                std::vector<float> pointNKNSquaredDist(K);
-
-                KdTreeFLANN<PointXYZ> kdtree;
-                static double area = 0.0;
-                static double volume = 0.0;
-                static double sumVolume;
-
-                sumVolume = 0.0;
-
-                PointCloud<PointXYZ>::Ptr obj_cloud_f (new PointCloud<PointXYZ>);
-                obj_cloud_f = pclObj.removeOutliers(objCloud, outlierVector, 1280/2, 1280/2);
-
-                kdtree.setInputCloud(obj_cloud_f);
-
-                for(int i = 0; i < obj_cloud_f->points.size(); i++)
-                {
-                    searchPoint = obj_cloud_f->points[i];
-                    NofNeighbor = kdtree.nearestKSearch (searchPoint, K, pointIdx, pointNKNSquaredDist);
-                    if(NofNeighbor == 2)
-                    {
-                        A = searchPoint; B = obj_cloud_f->points[pointIdx[0]]; C = obj_cloud_f->points[pointIdx[1]];
-                        area = 0.5*abs((A.x - C.x)*(B.y - A.y)-(A.x - B.x)*(C.y - A.y)); //Check this equation for triangle area
-
-                        volume = area * ((pclObj.getDistToPlane(A.x, A.y, A.z) + pclObj.getDistToPlane(B.x, B.y, B.z) + pclObj.getDistToPlane(C.x, C.y, C.z))/3);
-                        sumVolume += volume;
-                        obj_cloud_f->erase(obj_cloud_f->begin()+i);
-                    }
-                }
-                cout << "Volume: " << sumVolume << endl;
-                break;
- */

@@ -23,6 +23,7 @@ public:
     bool startStream();
 
     const rs2::vertex* RqSingleFrame();
+
     rs2::frameset RqDepthFrame();
     Eigen::MatrixXf RqMatrix();
     ~rsCam();
