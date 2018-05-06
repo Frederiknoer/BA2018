@@ -32,6 +32,11 @@
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/conditional_removal.h>
 
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/io/obj_io.h>
+
+#include "Algorithms.h"
 
 using namespace std;
 using namespace pcl;
@@ -44,7 +49,7 @@ class PclPlane {
 public:
     PclPlane();
     PclPlane(PointCloud<PointXYZ>::Ptr in_cloud);
-    void insertCloud(PointCloud<PointXYZ>::Ptr);
+    void insertCloud(std::vector<Algorithms::pts> in_cloud);
 
     void findPlane();
     float getDistToPlane(float x, float y, float z);
@@ -52,7 +57,7 @@ public:
     void visualizeColorCloud(PointCloud<PointXYZRGB>::Ptr);
     void visualizePlaneCloud();
     PointCloud<PointXYZRGB>::Ptr mergeCloudsColor(PointCloud<PointXYZ>::Ptr cloud1, char color1, PointCloud<PointXYZ>::Ptr cloud2, char color2);
-    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, char);
+    PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement);
     void mergeSort(PointCloud<PointXYZ>::Ptr,int size);
 
 
