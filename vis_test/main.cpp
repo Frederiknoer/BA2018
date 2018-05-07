@@ -119,6 +119,7 @@ void volumeEstimate(std::vector<float> outlierVec)
 					long int ite = 0;
 					double firstframe = 0.0f;
 					pclObj.insertCloud(emptyTrayVec_f);
+					std::cout << "fuck noget lort" << std::endl;
 					pclObj.findPlane();
 					break;}
 			default:{
@@ -265,14 +266,15 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 4 :
             {
+				
 				auto framedata = sq.dequeue();
 				if ( ite%3 == 0 )
 				{
 					firstframe = framedata.timestamp;
 				}
 				float shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
-				pclObj.InputToMultiCloud(multi_cloud,framedata,shift,outlierVec);
-				
+				pclObj.InputToMultiCloud(multi_cloud,framedata,shift);
+				std::cout << "fuck this shit " << std::endl;
 				if (ite%3 == 2)
 				{
 					std::cout << multi_cloud->size() << std::endl;
