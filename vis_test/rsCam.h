@@ -5,11 +5,14 @@
 #include <cstring>
 #include <iostream>
 #include <boost/thread/thread.hpp>
+#include "Algorithms.h"
+#include <functional>
+#pragma once
 
 #define IntelD435 "Intel RealSense 435"
 struct frmdata
 {
-    const rs2::vertex* vtx;
+   	std::vector<Algorithms::pts> vtx;
     size_t size;
     double timestamp;
 };

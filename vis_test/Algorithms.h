@@ -15,6 +15,7 @@ public:
 
     struct pts
     {
+		//pts(float x,float y,float z);
         float x;
         float y;
         float z;

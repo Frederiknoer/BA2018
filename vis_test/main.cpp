@@ -22,15 +22,16 @@ std::vector<float> initProgram()
     cin >> camPlace;
 
     OpenCV ocvWS;
-
+	rsCam tempCam(RSx,RSy,fps);
+	if(!tempCam.startStream()) throw std::runtime_error("Couldnt start stream");;
     //cout << "Taking picture of empty plane..." << endl;
-    auto rsFrame = sq.dequeue();
-    std::vector<Algorithms::pts> emptyTrayVec(rsFrame.size());
-    for(int i = 0; i < rsFrame.size(); i++)
+    auto rsFrame = tempCam.RqSingleFrame();
+    std::vector<Algorithms::pts> emptyTrayVec(RSx*RSy);
+    for(int i = 0; i < RSx*RSy; i++)
     {
-        emptyTrayVec[i].x = rsFrame[i].x;
-        emptyTrayVec[i].y = rsFrame[i].y;
-        emptyTrayVec[i].z = rsFrame[i].z / 10.0f; //This is only for finding workspace!!!!!
+        emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
+        emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
+        emptyTrayVec[i].z = rsFrame[i].z * 100.0f; //This is only for finding workspace!!!!!
     }
     ocvWS.create2dDepthImage(emptyTrayVec);
 
@@ -38,13 +39,11 @@ std::vector<float> initProgram()
         ocvWS.threshold('N', 47.5);
     else if(camPlace == 2)
         ocvWS.threshold('N', 35.0); //Still needs adjustment
-
     ocvWS.findBoundingBox(500, 1500);
     std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
 
     if(outlierVector.size() > 4)
         cout << "bad WS" << endl;
-
     outlierVector[0] = outlierVector[0] + 10; //min y
     outlierVector[1] = outlierVector[1] + 150; //min x
     outlierVector[2] = outlierVector[2] - 10; //max y
@@ -52,7 +51,6 @@ std::vector<float> initProgram()
     //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
     return outlierVector;
 }
-
 
 void volumeEstimate(std::vector<float> outlierVec)
 {
@@ -67,15 +65,27 @@ void volumeEstimate(std::vector<float> outlierVec)
          "Accumulation Matrix(4)"<< endl;
     cin >> method;
     cout << endl;
+	
+    TrayVec = sq.dequeue().vtx;
+// Setup for movingVolumeEstimation
+	long int ite = 0;
+	double firstframe = 0.0;
+	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
+	std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
+	PclPlane pclObj;
+	pclObj.insertCloud(emptyTrayVec_f);
+	pclObj.findPlane();
 
-    TrayVec = sq.dequeue();
     cout << endl << "Program is ready!! Press enter and start inserting garments.." << endl;
     cin.get();
     sq.clearQueue();
 
+
+	
     while(true)
     {
-        objVec = sq.dequeue();
+		auto fd = sq.dequeue();
+        objVec = fd.vtx;
 
         switch(method)
         {
@@ -210,7 +220,22 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 4 :
             {
-                //PATRICK YOUR BASTARD! INSERT YOUR FUCNTION HERE
+				auto framedata = sq.dequeue();
+				if ( ite%3 == 0 )
+				{
+					firstframe = framedata.timestamp;
+				}
+				float shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
+				pclObj.InputToMultiCloud(multi_cloud,framedata,shift,outlierVec);
+				
+				if (ite%3 == 2)
+				{
+					std::cout << multi_cloud->size() << std::endl;
+					float sum1 =  pclObj.NumIntegration(multi_cloud,500,500,outlierVec);
+					std::cout << std::fixed <<  "sum " <<500 << "x" <<500 << " : " << sum1 << std::endl;
+					multi_cloud->clear();
+				}   
+				ite++;
                 break;
             }
             default :
@@ -230,8 +255,8 @@ void getFrames(std::vector<float> WS, float speed)
     cam.startStream();
     frmdata rsFrame;
 
-    double timeStamp = 0;
-    double savedTimeStamp = 0;
+    double timeStamp = 0.0;
+    double savedTimeStamp = 0.0;
     float dist = WS[3] - WS[1];
 
     float timeThresh = (dist/speed)*1000;
@@ -243,18 +268,32 @@ void getFrames(std::vector<float> WS, float speed)
         if (timeStamp > savedTimeStamp + timeThresh)
         {
             savedTimeStamp = timeStamp;
-            for(int i = 0; i < rsFrame.size; i++)
+            /*for(int i = 0; i < rsFrame.size; i++)
             {
                 tempVec[i].x = rsFrame.vtx[i].x * 1000.0f;
                 tempVec[i].y = rsFrame.vtx[i].y * 1000.0f;
                 tempVec[i].z = rsFrame.vtx[i].z * 1000.0f;
-            }
-            sq.enqueue(tempVec);
+            }*/
+			std::cout << "nu" <<  std::endl;
+            sq.enqueue(rsFrame);
         }
     }
 }
+void getFrames()
+{
+    rsCam cam(RSx,RSy,fps);
+    cam.startStream();
+    frmdata rsFrame;
+    while (true)
+    {
+        rsFrame = cam.RqFrameData();
+		std::cout << "nu" <<  std::endl;
+        sq.enqueue(rsFrame);
+    }
+}
+
 ////////////////////
-void measureVelocity(rsCam& cam, PclPlane & plan)
+/*void measureVelocity(rsCam& cam, PclPlane & plan)
 {
 	PointCloud<PointXYZ>::Ptr vel_cloud (new PointCloud<PointXYZ>);
 	frmdata arr[4];
@@ -347,7 +386,7 @@ void visualizingIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int res
 				AccMat[i][j].append(AccMat[i][j-1].average());
 				AccMat[i][j].append(AccMat[i+1][j].average());
 				AccMat[i][j].append(AccMat[i][j+1].average());
-			}*/
+			}
 			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)
 			{
 				AccMat[i][j].insertSort(AccMat[i-1][j].median());
@@ -402,7 +441,7 @@ float NumIntegration(PclPlane& plan,PointCloud<PointXYZ>::Ptr pc, int resX, int 
 				AccMat[i][j].append(AccMat[i+1][j-1].average());
 				AccMat[i][j].append(AccMat[i+1][j+1].average());
 				AccMat[i][j].append(AccMat[i-1][j+1].average());
-			}*/
+			}
 			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
 			{
 				AccMat[i][j].insertSort(AccMat[i-1][j].median());
@@ -425,18 +464,13 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
 	double firstframe = 0.0;
 	//double lastframe = 0.0;
+	firstframe = framedata.timestamp;
 	float shift = 0.0f;
-	for (int i = 0; i < 6; i++)
+	while (true)
 	{
-		auto framedata = cam.RqFrameData();
-		if(i == 0)
-		{
-			firstframe = framedata.timestamp;
-			shift = 0.0f;
-		}
-		else
-			shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
-		plan.InputToMultiCloud(multi_cloud,framedata,0);
+		auto framedata = sq.dequeue();
+		shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
+		plan.InputToMultiCloud(multi_cloud,framedata,shift);
 		
 
 		//lastframe = framedata.timestamp;
@@ -449,7 +483,7 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	}
 	//visualizingIntegration(plan,multi_cloud,500,500);
 }
-
+*/
 int main (int argc, char * argv[]) try
 {
     std::vector<float> workSpace;
@@ -462,10 +496,12 @@ int main (int argc, char * argv[]) try
     std::thread t1([&]()
     {
         (getFrames(workSpace, convSpeed));
+		//(getFrames());
     });
     std::thread t2([&]()
     {
         (volumeEstimate(workSpace));
+		
     });
 
     t1.join();

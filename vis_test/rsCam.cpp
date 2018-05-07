@@ -34,7 +34,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     const vertex* list;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            //filtering(depth, 10);
+            filtering(depth, 10);
             pointcloud pc;
             _pts = pc.calculate(depth);
             list = _pts.get_vertices();
@@ -44,7 +44,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     {
         return list;
     }
-    else throw std::runtime_error("Can't fint dpeth stream");
+    else throw std::runtime_error("Can't fint depth stream");
 }
 
 rs2::frameset rsCam::RqDepthFrame()
@@ -64,16 +64,24 @@ frmdata rsCam::RqFrameData()
             //filtering(depth, 10);
             pointcloud pc;
             _pts = pc.calculate(depth);
-            fd.vtx = _pts.get_vertices();
+            auto arr =  _pts.get_vertices();
             fd.size = _pts.size();
             fd.timestamp = depth.get_timestamp();
+			Algorithms::pts tempPT;
+			for(int i = 0; i < fd.size; i++)
+            {
+                tempPT.x = arr[i].x * 1000.0f;
+                tempPT.y = arr[i].y * 1000.0f;
+                tempPT.z = arr[i].z * 1000.0f;
+				fd.vtx.push_back(tempPT);
+            }
         }
     }
-    if (fd.vtx != nullptr)
+    if (_pts.size() != 0)
     {
         return fd;
     }
-    else throw std::runtime_error("Can't fint dpeth stream");
+    else throw std::runtime_error("Can't fint depth stream");
 }
 Eigen::MatrixXf rsCam::RqMatrix()
 {

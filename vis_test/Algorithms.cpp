@@ -3,10 +3,8 @@
 //
 
 
-<<<<<<< HEAD
-#include <iostream>
-=======
->>>>>>> origin/patrick
+
+
 #include "Algorithms.h"
 
 Algorithms::Algorithms() {}

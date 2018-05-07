@@ -8,7 +8,7 @@ find_package(PCL 1.2 REQUIRED)
 find_package(OpenCV REQUIRED)
 
 
-include_directories(NRcode)
+
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})

@@ -132,7 +132,7 @@ void PclPlane::findPlane()
     coeffC = 1.0f;
     coeffD = eig(2);
 
-    float residuals = 0.0f;
+    /*float residuals = 0.0f;
     for (int i = 0; i < plane_cloud->points.size(); i ++)
     {
         residuals += pow(getDistToPlane(plane_cloud->points[i].x, plane_cloud->points[i].y, plane_cloud->points[i].z),2);
@@ -150,6 +150,7 @@ void PclPlane::findPlane()
         c_cloud->push_back(coeffPoint);
     }
     coeff_cloud = c_cloud;
+*/
 }
 
 float PclPlane::getDistToPlane(float x, float y, float z)
@@ -407,23 +408,84 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
-void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift)
+void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift,std::vector<float> corners)
 {
+	float minY = corners[0] - 1280/2;
+    float maxY = corners[2] - 1280/2;
+    float minX = corners[1] - 1280/2;
+    float maxX = corners[3] - 1280/2;
 	for (int i = 0; i < rs.size; i++)
 	{
 		//if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 5.0f)
-		if ( rs.vtx[i].x < 356.996f && rs.vtx[i].x > -386.93f && rs.vtx[i].y < 217.987 && rs.vtx[i].y > -281.999f)
-		if ((getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f) > 7.5f) &&(rs.vtx[i].z*1000.0f > 0.0f) && (rs.vtx[i].z*1000.0f < 1000.0f))
+		//if ( rs.vtx[i].x < 356.996f && rs.vtx[i].x > -386.93f && rs.vtx[i].y < 217.987 && rs.vtx[i].y > -281.999f)
+		if (rs.vtx[i].x > minX && rs.vtx[i].x < maxX && rs.vtx[i].y > minY && rs.vtx[i].y < maxY && rs.vtx[i].z > 0.0f && getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > 7.5f)
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
 											rs.vtx[i].z*1000.0*(nZ[0]+nZ[1]+nZ[2])));*/
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0,
 											rs.vtx[i].y*1000.0,
 											rs.vtx[i].z*1000.0));*/
-					pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
-											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
-											getDistToPlane(rs.vtx[i].x*1000.0f,rs.vtx[i].y*1000.0f,rs.vtx[i].z*1000.0f)));
+					pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*(nY[0]+nY[1]+nY[2]),
+											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));
 	}
+}
+float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY, std::vector<float> corners)		// Indsæt 
+{
+	llist AccMat[resX+1][resY+1] = {};
+	float sum = 0.0f;
+	float minY = corners[0] - 1280/2;
+    float maxY = corners[2] - 1280/2;
+    float minX = corners[1] - 1280/2;
+    float maxX = corners[3] - 1280/2;
+
+	/*for (int i = 0 ; i < pc->size();i++)					// Find corners
+	{
+		if (pc->points[i].x < minX) minX = pc->points[i].x;
+		else if  (pc->points[i].x > maxX) maxX = pc->points[i].x;
+
+		if (pc->points[i].y < minY) minY = pc->points[i].y;
+		else if  (pc->points[i].y > maxY) maxY = pc->points[i].y;
+	}*/
+	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+	for (int i = 0; i < pc->size(); i++)
+	{
+		std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
+		std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
+//		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
+		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
+	}
+	for (int i = 0; i <= resX;i++)
+		for(int j = 0; j <= resY;j++)
+		{
+			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
+			{
+				AccMat[i][j].append(AccMat[i-1][j].average());
+				AccMat[i][j].append(AccMat[i][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j].average());
+				AccMat[i][j].append(AccMat[i][j+1].average());
+
+				AccMat[i][j].append(AccMat[i-1][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j-1].average());
+				AccMat[i][j].append(AccMat[i+1][j+1].average());
+				AccMat[i][j].append(AccMat[i-1][j+1].average());
+			}*/
+			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
+			{
+				AccMat[i][j].insertSort(AccMat[i-1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j].median());
+				AccMat[i][j].insertSort(AccMat[i][j+1].median());
+
+				AccMat[i][j].insertSort(AccMat[i-1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j-1].median());
+				AccMat[i][j].insertSort(AccMat[i+1][j+1].median());
+				AccMat[i][j].insertSort(AccMat[i-1][j+1].median());
+			}
+			sum += AccMat[i][j].median()*stepX*stepY;
+			//cout << "sum " << sum << "\n";
+		} 
+	return sum;
 }
 
 PclPlane::~PclPlane() {}
