@@ -56,9 +56,13 @@ rs2::frameset rsCam::RqDepthFrame()
     }
 }
 
-frmdata rsCam::RqFrameData()
+frmdata rsCam::RqFrameData(std::vector<float> vec)
 {
 	frmdata fd;
+	float minY = vec[0] - 1280/2;
+    float maxY = vec[2] - 1280/2;
+    float minX = vec[1] - 1280/2;
+    float maxX = vec[3] - 1280/2;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
             //filtering(depth, 10);
@@ -70,10 +74,13 @@ frmdata rsCam::RqFrameData()
 			Algorithms::pts tempPT;
 			for(int i = 0; i < fd.size; i++)
             {
-                tempPT.x = arr[i].x * 1000.0f;
-                tempPT.y = arr[i].y * 1000.0f;
-                tempPT.z = arr[i].z * 1000.0f;
-				fd.vtx.push_back(tempPT);
+				if(arr[i].x*1000.0f > minX && arr[i].x*1000.0f < maxX && arr[i].y*1000.0f > minY && arr[i].y*1000.0f < maxY && arr[i].z*1000.0f > 0.0f && arr[i].z*1000.0f < 1000.0f)
+				{
+		            tempPT.x = arr[i].x * 1000.0f;
+		            tempPT.y = arr[i].y * 1000.0f;
+		            tempPT.z = arr[i].z * 1000.0f;
+					fd.vtx.push_back(tempPT);
+				}
             }
         }
     }

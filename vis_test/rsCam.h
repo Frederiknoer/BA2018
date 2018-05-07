@@ -31,7 +31,7 @@ public:
     Eigen::MatrixXf RqMatrix();
     ~rsCam();
 
-    frmdata RqFrameData();
+    frmdata RqFrameData(std::vector<float> vec);
 private:
     pipeline* _pipe;
     rs2::config _cfg;

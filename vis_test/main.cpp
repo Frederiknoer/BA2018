@@ -11,17 +11,14 @@ using namespace std;
 #define conv_velocity 576.3f		// mm / ms
 #define RSx 1280
 #define RSy 720
-#define fps 30
+#define fps 15
 
 SafeQueue sq;
 
 std::vector<float> initProgram(int camPlace)
 {
     rsCam tempCam(RSx, RSy, fps);
-    tempCam.startStream();
-
     OpenCV ocvWS;
-	rsCam tempCam(RSx,RSy,fps);
 	if(!tempCam.startStream()) throw std::runtime_error("Couldnt start stream");;
 
     std::vector<float> outlierVector;
@@ -44,7 +41,7 @@ std::vector<float> initProgram(int camPlace)
         ocvWS.findBoundingBox(500, 1500);
         outlierVector = ocvWS.getBoundingBoxCorners();
 
-        if(outlierVector.size() > 4)
+        if(outlierVector.size() != 4)
             cout << "bad WS" << endl;
 
         outlierVector[0] = outlierVector[0] + 10; //min y
@@ -61,7 +58,7 @@ std::vector<float> initProgram(int camPlace)
         ocvWS.findBoundingBox(500, 1500);
         outlierVector = ocvWS.getBoundingBoxCorners();
 
-        if(outlierVector.size() > 4)
+        if(outlierVector.size() != 4)
             cout << "bad WS" << endl;
 
         outlierVector[0] = outlierVector[0]; //min y
@@ -89,21 +86,50 @@ void volumeEstimate(std::vector<float> outlierVec)
     cin >> method;
     cout << endl;
 	
-    TrayVec = sq.dequeue().vtx;
-// Setup for movingVolumeEstimation
-	long int ite = 0;
-	double firstframe = 0.0;
-	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
-	std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
-	PclPlane pclObj;
-	pclObj.insertCloud(emptyTrayVec_f);
-	pclObj.findPlane();
+    auto emptyTrayVec_f = sq.dequeue().vtx;
 
+	OpenCV ocvGarment;
+	PclPlane pclObj;
+	PointCloud<PointXYZ>::Ptr multi_cloud (new PointCloud<PointXYZ>);
+// Setup for movingVolumeEstimation
+	double traysum;
+	long int ite;
+	double firstframe;
+	//std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
+
+
+	switch(method)
+        {
+            case 0 :{
+					traysum = 0.0;
+                	for(int i = 0; i < emptyTrayVec_f.size(); i++)
+                    	traysum += sqrt(pow(emptyTrayVec_f[i].x ,2) + pow(emptyTrayVec_f[i].y ,2) + pow(emptyTrayVec_f[i].z ,2));
+					break;}
+			case 1 :{
+					ocvGarment.loadPlane(emptyTrayVec_f);
+					break;}
+			case 2 :{
+					ocvGarment.loadPlane(emptyTrayVec_f);
+					break;}
+			case 3 :{
+					pclObj.insertCloud(emptyTrayVec_f);
+					pclObj.findPlane();
+					break;}
+			case 4 :{
+					long int ite = 0;
+					double firstframe = 0.0f;
+					pclObj.insertCloud(emptyTrayVec_f);
+					pclObj.findPlane();
+					break;}
+			default:{
+				throw std::runtime_error("Invalid input");
+					break;}
+		}
     cout << endl << "Program is ready!! Press enter and start inserting garments.." << endl;
     cin.get();
     cin.get();
     sq.clearQueue();
-
+	
     cout << "Program is running!!" << endl;
 
     while(true)
@@ -115,18 +141,12 @@ void volumeEstimate(std::vector<float> outlierVec)
         {
             case 0 :
             {
-                static double traysum = 0.0;
-                std::vector<Algorithms::pts> TrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
 
-                for(int i = 0; i < TrayVec_f.size(); i++)
-                    traysum += sqrt(pow(TrayVec_f[i].x ,2) + pow(TrayVec_f[i].y ,2) + pow(TrayVec_f[i].z ,2));
-
-
-                std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2);
+                //std::vector<Algorithms::pts> objVec_f = algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2);
                 double objsum = 0.0;
 
-                for(int j = 0; j < objVec_f.size(); j++)
-                    objsum += sqrt( (pow(objVec_f[j].x ,2)) + (pow(objVec_f[j].y ,2)) + (pow(objVec_f[j].z ,2)) );
+                for(int j = 0; j < objVec.size(); j++)
+                    objsum += sqrt( (pow(objVec[j].x ,2)) + (pow(objVec[j].y ,2)) + (pow(objVec[j].z ,2)) );
 
                 cout << "Volume: " << abs(traysum-objsum) << endl;
 
@@ -134,10 +154,7 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 1 : //OpenCv 2Dimage projection
             {
-                OpenCV ocvGarment;
-                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2));
-
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
+                ocvGarment.create2dDepthImageFromPlane(objVec);
                 ocvGarment.threshold('N', 10);
                 ocvGarment.findBoundingBox(150, 1000);
                 if(!(ocvGarment.getBoundingBoxCorners().empty()))
@@ -151,9 +168,6 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 2 : //OpenCv 2Dimage projection with roatated rectangle
             {
-                OpenCV ocvGarment;
-                ocvGarment.loadPlane(algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2));
-
                 ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
                 ocvGarment.findRoatedBoundingBox(150, 950);
@@ -299,7 +313,7 @@ void getFrames(std::vector<float> WS, float speed, int camPlace)
 
     while (true)
     {
-        rsFrame = cam.RqFrameData();
+        rsFrame = cam.RqFrameData(WS);
         timeStamp = rsFrame.timestamp;
         if (timeStamp > savedTimeStamp + timeThresh)
         {
@@ -310,11 +324,12 @@ void getFrames(std::vector<float> WS, float speed, int camPlace)
                 tempVec[i].y = rsFrame.vtx[i].y * 1000.0f;
                 tempVec[i].z = rsFrame.vtx[i].z * 1000.0f;
             }*/
+			std::cout << "nu" <<  std::endl;
             sq.enqueue(rsFrame);
         }
     }
 }
-void getFrames()
+/*void getFrames()
 {
     rsCam cam(RSx,RSy,fps);
     cam.startStream();
@@ -325,7 +340,7 @@ void getFrames()
 		std::cout << "nu" <<  std::endl;
         sq.enqueue(rsFrame);
     }
-}
+}*/
 
 ////////////////////
 /*void measureVelocity(rsCam& cam, PclPlane & plan)
