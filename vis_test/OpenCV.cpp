@@ -81,13 +81,13 @@ void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud
     xMax = maxX;
     yMax = maxY;
 
-    std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
+    //std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
 
     int imgRow = ((abs(xMin))+xMax)+1;
     int imgCol = ((abs(yMin))+yMax)+1;
     //int imgRow = (xMax - xMin) + 1;
     //int imgCol = (yMax - yMin) + 1;
-    std::cout << imgRow << " - " << imgCol << std::endl;
+    //std::cout << imgRow << " - " << imgCol << std::endl;
 
     cv::Mat floatImg(imgRow, imgCol, CV_32FC1, cv::Scalar(0));
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
@@ -179,6 +179,7 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
         drawContours( drawing, contours_poly, (int)i, 125, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point(0,0) );
         rectangle( drawing, rectThresh[i].tl(), rectThresh[i].br(), 125, 2, 8, 0 );
     }
+
     //cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
@@ -210,8 +211,8 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
     }
 
     boundingBoxes = rectThresh;
-    std::cout << boundingBoxes.size() << std::endl;
-/*
+    //std::cout << boundingBoxes.size() << std::endl;
+
     cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
     drawing = orgImage;
 
@@ -227,7 +228,7 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
     //cv::waitKey(0);
-*/
+
 
 }
 

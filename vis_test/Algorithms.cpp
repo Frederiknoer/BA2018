@@ -49,7 +49,7 @@ void Algorithms::leastSquarSVD(std::vector<pts> input)
     coeffB = eig(1);
     coeffC = 1.0f;
     coeffD = eig(2);
-    std::cout << coeffA << std::endl << coeffB << std::endl << coeffC << std::endl << coeffD << std::endl;
+    //std::cout << coeffA << std::endl << coeffB << std::endl << coeffC << std::endl << coeffD << std::endl;
 }
 
 float Algorithms::getDistToPlane(float x, float y, float z)

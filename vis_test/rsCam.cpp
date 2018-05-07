@@ -8,7 +8,7 @@ rsCam::rsCam(int x, int y, int fps)
     if (list.size() == 0)
         throw std::runtime_error("No device detected");
     device dev = list.front();
-    std::cout << dev.get_info(RS2_CAMERA_INFO_NAME) << std::endl;
+    //std::cout << dev.get_info(RS2_CAMERA_INFO_NAME) << std::endl;
     if (std::strcmp(dev.get_info(RS2_CAMERA_INFO_NAME),IntelD435)!= 0)
     {
         std::cout << dev.get_info(RS2_CAMERA_INFO_NAME) << " is currently connected" << std::endl;
@@ -34,7 +34,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     const vertex* list;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            //filtering(depth, 10);
+            filtering(depth, 15);
             pointcloud pc;
             _pts = pc.calculate(depth);
             list = _pts.get_vertices();
@@ -126,5 +126,6 @@ void rsCam::filtering(depth_frame& frame, int i)
 }
 rsCam::~rsCam()
 {
+    _pipe->stop();
     delete _pipe;
 }

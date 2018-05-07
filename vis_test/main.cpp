@@ -10,45 +10,64 @@ using namespace std;
 
 #define RSx 1280
 #define RSy 720
-#define fps 15
+#define fps 30
 
 SafeQueue sq;
 
-std::vector<float> initProgram()
+std::vector<float> initProgram(int camPlace)
 {
-    int camPlace = 1;
-    cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2) ..." << endl;
-    cin >> camPlace;
+    rsCam tempCam(RSx, RSy, fps);
+    tempCam.startStream();
 
     OpenCV ocvWS;
+    std::vector<float> outlierVector;
 
     //cout << "Taking picture of empty plane..." << endl;
-    auto rsFrame = sq.dequeue();
-    std::vector<Algorithms::pts> emptyTrayVec(rsFrame.size());
-    for(int i = 0; i < rsFrame.size(); i++)
+    auto rsFrame = tempCam.RqSingleFrame();
+    std::vector<Algorithms::pts> emptyTrayVec(RSx*RSy);
+    for(int i = 0; i < RSx*RSy; i++)
     {
-        emptyTrayVec[i].x = rsFrame[i].x;
-        emptyTrayVec[i].y = rsFrame[i].y;
-        emptyTrayVec[i].z = rsFrame[i].z / 10.0f; //This is only for finding workspace!!!!!
+        emptyTrayVec[i].x = rsFrame[i].x * 1000.0f;
+        emptyTrayVec[i].y = rsFrame[i].y * 1000.0f;
+        emptyTrayVec[i].z = rsFrame[i].z * 100.0f; //This is only for finding workspace!!!!!
     }
     ocvWS.create2dDepthImage(emptyTrayVec);
 
     if(camPlace == 1)
+    {
+        //cout << camPlace << endl;
         ocvWS.threshold('N', 47.5);
+        ocvWS.findBoundingBox(500, 1500);
+        outlierVector = ocvWS.getBoundingBoxCorners();
+
+        if(outlierVector.size() > 4)
+            cout << "bad WS" << endl;
+
+        outlierVector[0] = outlierVector[0] + 10; //min y
+        outlierVector[1] = outlierVector[1] + 100; //min x
+        outlierVector[2] = outlierVector[2] - 10; //max y
+        outlierVector[3] = outlierVector[3] - 100; //max x
+        //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
+        //cout << "Init done" << endl;
+    }
     else if(camPlace == 2)
-        ocvWS.threshold('N', 35.0); //Still needs adjustment
+    {
+        //cout << camPlace << endl;
+        ocvWS.threshold('N', 40.5); //Still needs adjustment
+        ocvWS.findBoundingBox(500, 1500);
+        outlierVector = ocvWS.getBoundingBoxCorners();
 
-    ocvWS.findBoundingBox(500, 1500);
-    std::vector<float> outlierVector = ocvWS.getBoundingBoxCorners();
+        if(outlierVector.size() > 4)
+            cout << "bad WS" << endl;
 
-    if(outlierVector.size() > 4)
-        cout << "bad WS" << endl;
+        outlierVector[0] = outlierVector[0]; //min y
+        outlierVector[1] = outlierVector[1] + 65; //min x
+        outlierVector[2] = outlierVector[2]; //max y
+        outlierVector[3] = outlierVector[3] - 20; //max x
+        //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
+        //cout << "Init done" << endl;
+    }
 
-    outlierVector[0] = outlierVector[0] + 10; //min y
-    outlierVector[1] = outlierVector[1] + 150; //min x
-    outlierVector[2] = outlierVector[2] - 10; //max y
-    outlierVector[3] = outlierVector[3] - 100; //max x
-    //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
     return outlierVector;
 }
 
@@ -70,8 +89,9 @@ void volumeEstimate(std::vector<float> outlierVec)
     TrayVec = sq.dequeue();
     cout << endl << "Program is ready!! Press enter and start inserting garments.." << endl;
     cin.get();
+    cin.get();
     sq.clearQueue();
-
+    cout << "Program is running!!" << endl;
     while(true)
     {
         objVec = sq.dequeue();
@@ -104,10 +124,13 @@ void volumeEstimate(std::vector<float> outlierVec)
 
                 ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
-                ocvGarment.findBoundingBox(100, 950);
-                ocvGarment.interPolate();
+                ocvGarment.findBoundingBox(150, 1000);
+                if(!(ocvGarment.getBoundingBoxCorners().empty()))
+                {
+                    ocvGarment.interPolate();
+                    cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+                }
 
-                cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
 
                 break;
             }
@@ -119,8 +142,11 @@ void volumeEstimate(std::vector<float> outlierVec)
                 ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
                 ocvGarment.threshold('N', 10);
                 ocvGarment.findRoatedBoundingBox(150, 950);
-
-                cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+                if(!(ocvGarment.getBoundingBoxCorners().empty()))
+                {
+                    //ocvGarment.interPolate();
+                    cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+                }
 
                 break;
             }
@@ -165,7 +191,8 @@ void volumeEstimate(std::vector<float> outlierVec)
                 tree->setInputCloud (obj_cloud_f);
                 n.setInputCloud (obj_cloud_f);
                 n.setSearchMethod (tree);
-                n.setKSearch (150);
+                //n.setKSearch (150);
+                n.setRadiusSearch(10);
                 n.compute (*normals);
                 cout << "Normals computed" << endl;
                 //* normals should not contain the point normals + surface curvatures
@@ -189,7 +216,7 @@ void volumeEstimate(std::vector<float> outlierVec)
                 cout << "radius sat" << endl;
                 // Set typical values for the parameters
                 gp3.setMu (3.5);
-                gp3.setMaximumNearestNeighbors (250);
+                gp3.setMaximumNearestNeighbors (125);
                 gp3.setMaximumSurfaceAngle(M_PI/3); // 45 degrees
                 gp3.setMinimumAngle(M_PI/20); // 10 degrees
                 gp3.setMaximumAngle(2*M_PI/2.5); // 120 degrees
@@ -209,7 +236,7 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 4 :
             {
-                //PATRICK YOUR BASTARD! INSERT YOUR FUCNTION HERE
+                //PATRICK YOUR BASTARD! INSERT YOUR FUNCTION HERE
                 break;
             }
             default :
@@ -221,7 +248,7 @@ void volumeEstimate(std::vector<float> outlierVec)
     }
 }
 
-void getFrames(std::vector<float> WS, float speed)
+void getFrames(std::vector<float> WS, float speed, int camPlace)
 {
     rsCam cam(RSx,RSy,fps);
     std::vector<Algorithms::pts> tempVec(RSx*RSy);
@@ -231,7 +258,11 @@ void getFrames(std::vector<float> WS, float speed)
 
     double timeStamp = 0;
     double savedTimeStamp = 0;
-    float dist = WS[3] - WS[1];
+    float dist = 0;
+    if(camPlace == 1)
+        dist = WS[3] - WS[1];
+    else if(camPlace == 2)
+        dist = WS[2] - WS[0];
 
     float timeThresh = (dist/speed)*1000;
 
@@ -258,14 +289,17 @@ int main (int argc, char * argv[]) try
 {
     std::vector<float> workSpace;
     float convSpeed = 0; //576.3
-
-    workSpace = initProgram();
-    cout << "Enter conveyor speed" << endl;
+    int camPlace = 1;
+    cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2):" << endl;
+    cin >> camPlace;
+    cout << "Starting Initialization.." << endl;
+    workSpace = initProgram(camPlace);
+    cout << "Enter conveyor speed (mm/s) :" << endl;
     cin >> convSpeed; cout << endl;
 
     std::thread t1([&]()
     {
-        (getFrames(workSpace, convSpeed));
+        (getFrames(workSpace, convSpeed, camPlace));
     });
     std::thread t2([&]()
     {
