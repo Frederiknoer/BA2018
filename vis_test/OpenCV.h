@@ -20,11 +20,17 @@ public:
     OpenCV();
     void create2dDepthImage(std::vector<Algorithms::pts> inputCloud);
     void loadPlane (std::vector<Algorithms::pts>);
+
     void create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud);
+    void create2dDepthImageFloat(std::vector<Algorithms::pts> inputCloud);
+
     void threshold(char ThreshType, float pointThresh);
 
     void interPolate();
     float getMedian(Algorithms::pts pt);
+
+    void cv1(std::vector<Algorithms::pts> inputCloud);
+    void cv2(std::vector<Algorithms::pts> inputCloud);
 
     void findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);
     void findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiagonolThreshold);

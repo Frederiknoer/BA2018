@@ -59,12 +59,6 @@ void OpenCV::loadPlane(std::vector<Algorithms::pts> planeCloud)
 
 void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud)
 {
-    //std::vector<Algorithms::pts> SortedX = alg.mergeSortX(inputCloud);
-    //std::vector<Algorithms::pts> SortedY = alg.mergeSortY(inputCloud);
-    //xMin = SortedX.front().x;
-    //xMax = SortedX.back().x;
-    //yMin = SortedY.front().y;
-    //yMax = SortedY.back().y;
 
     float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
     for (int i = 0 ; i < inputCloud.size();i++)					// Find corners
@@ -81,20 +75,13 @@ void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud
     xMax = maxX;
     yMax = maxY;
 
-    //std::cout << xMin << " - " << xMax << " - " << yMin << " - " << yMax << std::endl;
-
     int imgRow = ((abs(xMin))+xMax)+1;
     int imgCol = ((abs(yMin))+yMax)+1;
-    //int imgRow = (xMax - xMin) + 1;
-    //int imgCol = (yMax - yMin) + 1;
-    //std::cout << imgRow << " - " << imgCol << std::endl;
 
-    cv::Mat floatImg(imgRow, imgCol, CV_32FC1, cv::Scalar(0));
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
     cv::Mat threshCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
 
     uchar* cvCloudPt = cvCloud.data;
-    //std::cout << "Mats created" << std::endl;
 
     for(int i = 0; i < inputCloud.size(); i++)
     {
@@ -110,25 +97,58 @@ void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
         if (dist > 0.5)
-        {
             cvCloudPt[row*imgCol+col] = dist;
-            floatImg.at<float>(row,col) = dist;
-        }
         else
-        {
             cvCloudPt[row*imgCol+col] = 0;
-            floatImg.at<float>(row,col) = 0.0f;
-        }
     }
     //std::cout << "projection done!" << std::endl;
     orgImage = cvCloud;
     thresholdImage = threshCloud;
-    floatImage = floatImg;
-    //cv::imshow("cvCloud", cvCloud);
-    //cv::waitKey(0);
-    //SortedX.clear();
-    //SortedY.clear();
 
+}
+
+void OpenCV::create2dDepthImageFloat(std::vector<Algorithms::pts> inputCloud)
+{
+
+    float minX = 0.0f, maxX = 0.0f,minY = 0.0f, maxY = 0.0f;
+    for (int i = 0 ; i < inputCloud.size();i++)					// Find corners
+    {
+        if (inputCloud[i].x < minX) minX = inputCloud[i].x;
+        else if  (inputCloud[i].x > maxX) maxX = inputCloud[i].x;
+
+        if (inputCloud[i].y < minY) minY = inputCloud[i].y;
+        else if  (inputCloud[i].y > maxY) maxY = inputCloud[i].y;
+    }
+
+    xMin = minX;
+    yMin = minY;
+    xMax = maxX;
+    yMax = maxY;
+
+    int imgRow = ((abs(xMin))+xMax)+1;
+    int imgCol = ((abs(yMin))+yMax)+1;
+
+    cv::Mat floatImg(imgRow, imgCol, CV_32FC1, cv::Scalar(0));
+
+    for(int i = 0; i < inputCloud.size(); i++)
+    {
+        static float x = 0.0f,y = 0.0f,z = 0.0f;
+        static int row = 0, col = 0;
+        static float dist = 0.0f;
+        x = (inputCloud[i].x);
+        y = (inputCloud[i].y);
+        z = (inputCloud[i].z);
+
+        dist = alg.getDistToPlane(x, y, z); //Distance to the plane in mm
+
+        row = (int)(x+(abs(xMin)));
+        col = (int)(y+(abs(yMin)));
+        if (dist > 0.5)
+            floatImg.at<float>(row,col) = dist;
+        else
+            floatImg.at<float>(row,col) = 0.0f;
+    }
+    floatImage = floatImg;
 }
 
 void OpenCV::threshold(char ThreshType, float pointThresh)
@@ -304,4 +324,18 @@ float OpenCV::getMedian(Algorithms::pts pt)
         return (sum/counter);
     else
         return 0;
+}
+
+void OpenCV::cv1(std::vector<Algorithms::pts> inputCloud)
+{
+    create2dDepthImageFromPlane(inputCloud);
+    threshold('N', 10);
+    findBoundingBox(150, 1000);
+}
+
+void OpenCV::cv2(std::vector<Algorithms::pts> inputCloud)
+{
+    create2dDepthImageFromPlane(inputCloud);
+    threshold('N', 10);
+    findRoatedBoundingBox(150, 950);
 }

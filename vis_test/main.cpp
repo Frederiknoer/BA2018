@@ -155,9 +155,17 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 1 : //OpenCv 2Dimage projection
             {
-                ocvGarment.create2dDepthImageFromPlane(objVec);
-                ocvGarment.threshold('N', 10);
-                ocvGarment.findBoundingBox(150, 1000);
+               
+                std::thread CV1([&](){
+                    (ocvGarment.cv1(objVec));
+                });
+                std::thread CV2([&](){
+                    (ocvGarment.create2dDepthImageFloat(objVec));
+                });
+
+                CV1.join();
+                CV2.join();
+
                 if(!(ocvGarment.getBoundingBoxCorners().empty()))
                 {
                     ocvGarment.interPolate();
@@ -169,9 +177,17 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 2 : //OpenCv 2Dimage projection with roatated rectangle
             {
-                ocvGarment.create2dDepthImageFromPlane(algo.removeOutliers(objVec, outlierVec, 1280/2, 1280/2));
-                ocvGarment.threshold('N', 10);
-                ocvGarment.findRoatedBoundingBox(150, 950);
+          
+                std::thread CV1([&](){
+                    (ocvGarment.cv2(objVec));
+                });
+                std::thread CV2([&](){
+                    (ocvGarment.create2dDepthImageFloat(objVec));
+                });
+
+				CV1.join();
+                CV2.join();
+
                 if(!(ocvGarment.getBoundingBoxCorners().empty()))
                 {
                     //ocvGarment.interPolate();
