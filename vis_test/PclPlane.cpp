@@ -159,7 +159,7 @@ float PclPlane::getDistToPlane(float x, float y, float z)
     float sumOfSquares = (coeffA*coeffA)+(coeffB*coeffB)+(coeffC*coeffC);
     float distDenum = sqrt(sumOfSquares);
 	
-    if((distNum/distDenum) > 0.0f)
+    if((distNum/distDenum) >= 0.0f)
         return 0.0f;
     return abs(distNum/distDenum);
 }
@@ -428,15 +428,15 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 }
 float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY, std::vector<float> corners)		// Indsæt 
 {
-	std::cout << "hej patrick" << std::endl;
 	llist AccMat[resX+1][resY+1] = {};
 	float sum = 0.0f;
-	float minY = corners[0] - 1280/2;
-    float maxY = corners[2] - 1280/2;
-    float minX = corners[1] - 1280/2;
-    float maxX = corners[3] - 1280/2;
+	float minY = corners[0] - 720/2 - 50;
+    float maxY = corners[2] - 720/2 + 50;
+    float minX = corners[1] - 1500;
+    float maxX = corners[3] - 1280/2 + 100;
 	std::cout << minX << " - " << maxX << " - " << minY << " - " << maxY << std::endl;
 	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+	std::cout << "stepX " << stepX << " - " << " stepY " << stepY << std::endl;
 	for (int i = 0; i < pc->size(); i++)
 	{
 		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
@@ -444,6 +444,7 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
 //		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
 		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
 	}
+	std::cout << "hej patrick" << std::endl;
 	for (int i = 0; i <= resX;i++)
 		for(int j = 0; j <= resY;j++)
 		{
@@ -471,10 +472,35 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
 				AccMat[i][j].insertSort(AccMat[i+1][j+1].median());
 				AccMat[i][j].insertSort(AccMat[i-1][j+1].median());
 			}
+			//if (AccMat[i][j].median() > 0.0f)
+				//std::cout << "i: "<<i<<", j: "<< j<< "  - " << AccMat[i][j].median() << std::endl;
 			sum += AccMat[i][j].median()*stepX*stepY;
 			//cout << "sum " << sum << "\n";
 		} 
 	return sum;
 }
-
+void PclPlane::measureVelocity(rsCam& cam,std::vector<float> corners)
+{
+	PointCloud<PointXYZ>::Ptr vel_cloud (new PointCloud<PointXYZ>);
+	frmdata arr[4];
+	for (int i = 0;i<4;i++)
+	{
+		arr[i] = cam.RqFrameData(corners);
+	}
+	double temp = 0.0;
+	for (int i = 0; i < 4;i++)
+	{
+		std::cout << arr[i].vtx.size() << std::endl;
+		for(int j = 0; j < (arr[i].vtx.size()); j ++)
+	 	{
+			if (getDistToPlane(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z) > 7.5f)
+			{ 
+				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z));
+			}
+    	}
+	pcl::io::savePCDFileASCII (std::to_string(i) + "_velocity_" + std::to_string(arr[i].timestamp - temp) + ".txt", *vel_cloud);
+	temp = arr[i].timestamp;
+	vel_cloud->clear();
+	}
+}
 PclPlane::~PclPlane() {}

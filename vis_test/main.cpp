@@ -11,7 +11,7 @@ using namespace std;
 #define conv_velocity 576.3f		// mm / ms
 #define RSx 1280
 #define RSy 720
-#define fps 15
+#define fps 30
 
 SafeQueue sq;
 
@@ -25,6 +25,7 @@ std::vector<float> initProgram(int camPlace)
 
     //cout << "Taking picture of empty plane..." << endl;
     auto rsFrame = tempCam.RqSingleFrame();
+	//tempCam.stopStream();
     std::vector<Algorithms::pts> emptyTrayVec(RSx*RSy);
     for(int i = 0; i < RSx*RSy; i++)
     {
@@ -44,9 +45,9 @@ std::vector<float> initProgram(int camPlace)
         if(outlierVector.size() != 4)
             cout << "bad WS" << endl;
 
-        outlierVector[0] = outlierVector[0] + 10; //min y
+        outlierVector[0] = outlierVector[0] + 36; //min y
         outlierVector[1] = outlierVector[1] + 100; //min x
-        outlierVector[2] = outlierVector[2] - 10; //max y
+        outlierVector[2] = outlierVector[2] - 12; //max y
         outlierVector[3] = outlierVector[3] - 100; //max x
         //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
         //cout << "Init done" << endl;
@@ -68,7 +69,8 @@ std::vector<float> initProgram(int camPlace)
         //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
         //cout << "Init done" << endl;
     }
-
+	std::cout << "xmin: " << outlierVector[1] << ", xMax: " << outlierVector[3] << ", ymin: " << outlierVector[0] << ", ymax: " << outlierVector[2] << std::endl;
+	
     return outlierVector;
 }
 
@@ -119,7 +121,6 @@ void volumeEstimate(std::vector<float> outlierVec)
 					long int ite = 0;
 					double firstframe = 0.0f;
 					pclObj.insertCloud(emptyTrayVec_f);
-					std::cout << "fuck noget lort" << std::endl;
 					pclObj.findPlane();
 					break;}
 			default:{
@@ -282,7 +283,6 @@ void volumeEstimate(std::vector<float> outlierVec)
             }
             case 4 :
             {
-				
 				auto framedata = sq.dequeue();
 				if ( ite%3 == 0 )
 				{
@@ -290,13 +290,15 @@ void volumeEstimate(std::vector<float> outlierVec)
 				}
 				float shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
 				pclObj.InputToMultiCloud(multi_cloud,framedata,shift);
-				std::cout << "fuck this shit " << std::endl;
+				//std::cout << "fuck this shit " << framedata.timestamp-firstframe << " - " << shift <<  std::endl;
 				if (ite%3 == 2)
 				{
 					std::cout << multi_cloud->size() << std::endl;
-					float sum1 =  pclObj.NumIntegration(multi_cloud,500,500,outlierVec);
-					std::cout << std::fixed <<  "sum " <<500 << "x" <<500 << " : " << sum1 << std::endl;
+					pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
+					float sum1 =  pclObj.NumIntegration(multi_cloud,800,350,outlierVec);
+					std::cout << std::fixed <<  "sum " <<1000 << "x" <<200 << " : " << sum1 << std::endl;
 					multi_cloud->clear();
+					std::cin.get();
 				}   
 				ite++;
                 break;
@@ -314,7 +316,7 @@ void getFrames(std::vector<float> WS, float speed, int camPlace)
 {
     rsCam cam(RSx,RSy,fps);
     std::vector<Algorithms::pts> tempVec(RSx*RSy);
-
+	while(!cam.setROI(WS));
     cam.startStream();
     frmdata rsFrame;
 
@@ -342,7 +344,7 @@ void getFrames(std::vector<float> WS, float speed, int camPlace)
                 tempVec[i].y = rsFrame.vtx[i].y * 1000.0f;
                 tempVec[i].z = rsFrame.vtx[i].z * 1000.0f;
             }*/
-			std::cout << "nu" <<  std::endl;
+			//std::cout << "nu" <<  std::endl;
             sq.enqueue(rsFrame);
         }
     }
@@ -361,28 +363,7 @@ void getFrames(std::vector<float> WS, float speed, int camPlace)
 }*/
 
 ////////////////////
-/*void measureVelocity(rsCam& cam, PclPlane & plan)
-{
-	PointCloud<PointXYZ>::Ptr vel_cloud (new PointCloud<PointXYZ>);
-	frmdata arr[4];
-	for (int i = 0;i<4;i++)
-	{
-		arr[i] = cam.RqFrameData();
-	}
-	double temp = 0.0;
-	for (int i = 0; i < 4;i++)
-	{
-		for(int j = 0; j < (arr[i].size); j ++)
-	 	{
-			if (plan.getDistToPlane(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f) > 7.5f)
-			{
-				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x*1000.0f,arr[i].vtx[j].y*1000.0f,arr[i].vtx[j].z*1000.0f));
-			}
-    	}
-	pcl::io::savePCDFileASCII ("velocity_" + std::to_string(arr[i].timestamp - temp), *vel_cloud);
-	temp = arr[i].timestamp;
-	}
-}
+/*
 bool initialize(rsCam& cam, PclPlane& plan)			// Saves pcd files for finding normal vectors
 {
 	PointCloud<PointXYZ>::Ptr init_cloud (new PointCloud<PointXYZ>);
@@ -552,18 +533,60 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	//visualizingIntegration(plan,multi_cloud,500,500);
 }
 */
+testmode(int camplace, std::vector<float> workSpace)
+{
+    Algorithms algo;
+	PclPlane pclObj;
+	OpenCV ocvGarment;
+	rsCam cam(RSx,RSy,fps);
+	while(!cam.setROI(WS));
+    cam.startStream();
+
+	std::vector<Algorithms::pts> TrayVec;
+	PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    PointXYZ tempPoint;
+	double traysum;
+	int mode = 1;
+	while(1)
+	{
+		cout << "choose test: measure velocity(0), " << endl;
+		cin >> mode;
+		switch(mode)
+        {
+            case 0 :{					// measure velocity
+					pclObj.measureVelocity(cam,workSpace);
+					std::cout << "done" << std::endl;
+					break;}
+			case 1 :{					// 
+					break;}
+			case 2 :{
+					break;}
+			case 3 :{
+					break;}
+			case 4 :{
+					break;}
+			default:{
+				throw std::runtime_error("Invalid input");
+					break;}
+		}
+	}
+}
 int main (int argc, char * argv[]) try
 {
     std::vector<float> workSpace;
     float convSpeed = 0; //576.3
     int camPlace = 1;
+	int mode = 1;
     cout << "Enter if camera is over inlet conveyor(1) or inside X-Ray(2):" << endl;
     cin >> camPlace;
     cout << "Starting Initialization.." << endl;
     workSpace = initProgram(camPlace);
     cout << "Enter conveyor speed (mm/s) :" << endl;
     cin >> convSpeed; cout << endl;
-
+    cout << "Normal mode(1) or test mode(2):" << endl;
+    cin >> mode;
+	if (mode == 2)
+		testmode(camPlace, workSpace);
     std::thread t1([&]()
     {
 

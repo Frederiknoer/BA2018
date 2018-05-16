@@ -62,7 +62,6 @@ float Algorithms::getDistToPlane(float x, float y, float z)
         return 0.0f;
     return std::abs(distNum/distDenum);
 }
-
 /*
 std::vector<Algorithms::pts> Algorithms::mergeSortX(std::vector<pts> input)
 {

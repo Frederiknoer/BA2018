@@ -71,9 +71,10 @@ public:
     float coeffA = 0.0f, coeffB = 0.0f, coeffC = 0.0f, coeffD = 0.0f;
     PointCloud<PointXYZ>::Ptr coeff_cloud = {0};
     PointCloud<PointXYZ>::Ptr sorted_x = {0}, sorted_y = {0};
-	float nX[3] = {0.9938f, 0.0058f,-0.1108f};
-	float nY[3] = {0.0042f, -0.9999f,-0.0146f};
-	float nZ[3] = {0.1109f, -0.0140f,0.9937f}; 
+	float nX[3] = {0.9950f, 0.0044f,-0.0995f};
+	float nY[3] = {0.00069f, -0.9993f,-0.0368f};
+	float nZ[3] = {0.0996f, -0.0366f,0.9944f}; 
+	void measureVelocity(rsCam& cam,std::vector<float> corners);
 /*
 Coeff A: 0.152994
 Coeff B: -0.118216

@@ -10,9 +10,9 @@ OpenCV::OpenCV() {}
 void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
 {
     int imgRow = 1280;
-    int imgCol = 1280;
+    int imgCol = 720;
 
-    cv::Mat floatImg(imgRow, imgCol, CV_32FC1, cv::Scalar(0));
+   
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
     cv::Mat threshCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
 
@@ -25,21 +25,19 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
         x = (inputCloud[i].x);
         y = (inputCloud[i].y);
         z = (inputCloud[i].z);
-        if (x < 1280 && y < 1280)
+        if (x < 1280 && y < 720)
         {
             row = (int)(x+(1280/2));
-            col = (int)(y+(1280/2));
-            if(abs(y) < 1280/2 && abs(x) < 1280/2)
+            col = (int)(y+(720/2));
+            if(abs(y) < 720/2 && abs(x) < 1280/2)
             {
                 if (z > 1 && z < 75)
                 {
                     cvCloudPt[row*imgCol+col] = z;
-                    floatImg.at<float>(row,col) = z;
                 }
                 else if(z < 750)
                 {
                     cvCloudPt[row*imgCol+col] = 0;
-                    floatImg.at<float>(row,col) = 0.0f;
                 }
             }
 
@@ -47,7 +45,7 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
     }
     orgImage = cvCloud;
     thresholdImage = threshCloud;
-    floatImage = floatImg;
+
     //cv::imshow("cvCloud", cvCloud);
     //cv::waitKey(0);
 }
@@ -143,10 +141,10 @@ void OpenCV::create2dDepthImageFloat(std::vector<Algorithms::pts> inputCloud)
 
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
-        if (dist > 0.5)
+        if (dist > 0.1)
             floatImg.at<float>(row,col) = dist;
         else
-            floatImg.at<float>(row,col) = 0.0f;
+            floatImg.at<float>(row,col) = 0;
     }
     floatImage = floatImg;
 }
@@ -310,7 +308,7 @@ float OpenCV::getMedian(Algorithms::pts pt)
     perimeter[6] = floatImage.at<float>(pt.x - 1, pt.y - 1);
     perimeter[7] = floatImage.at<float>(pt.x - 1, pt.y);
 
-    float sum = 0;
+    float sum = 0.0f;
     int counter = 0;
     for(int i = 0; i < 8; i++)
     {
@@ -323,19 +321,19 @@ float OpenCV::getMedian(Algorithms::pts pt)
     if (counter > 3)
         return (sum/counter);
     else
-        return 0;
+        return 0.0f;
 }
 
 void OpenCV::cv1(std::vector<Algorithms::pts> inputCloud)
 {
     create2dDepthImageFromPlane(inputCloud);
     threshold('N', 10);
-    findBoundingBox(150, 1000);
+    findBoundingBox(100, 1000);
 }
 
 void OpenCV::cv2(std::vector<Algorithms::pts> inputCloud)
 {
     create2dDepthImageFromPlane(inputCloud);
-    threshold('N', 10);
-    findRoatedBoundingBox(150, 950);
+    threshold('N', 12.5);
+    findRoatedBoundingBox(100, 950);
 }

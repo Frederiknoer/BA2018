@@ -111,14 +111,18 @@ public:
 	}
 	float median()
 	{
+		float tempval = 0.0f;
 		node *temp = head;
 		node *temp2 = head;
 		if (isEmpty())
 			return 0.0f;
 		while (temp2 != NULL && temp2->next != NULL)
 		{
+			if (temp2 == NULL)
+				return (temp->value+tempval)/2.0f;
 			temp = temp->next;
 			temp2 = temp2->next->next;
+			tempval = temp->value;
 		}
 		return temp->value;
 	}

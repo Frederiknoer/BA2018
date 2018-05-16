@@ -24,6 +24,7 @@ public:
     rsCam();
     rsCam(int x, int y, int fps);
     bool startStream();
+	void stopStream();
 
     const rs2::vertex* RqSingleFrame();
 
@@ -32,10 +33,13 @@ public:
     ~rsCam();
 
     frmdata RqFrameData(std::vector<float> vec);
+	bool setROI(std::vector<float> vec);
 private:
     pipeline* _pipe;
     rs2::config _cfg;
     points _pts;
     void filtering(depth_frame& frame, int i);
+
+	rs2::roi_sensor* _roi;
 
 };

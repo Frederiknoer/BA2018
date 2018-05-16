@@ -19,8 +19,8 @@ rsCam::rsCam(int x, int y, int fps)
 
     auto depth_sens = dev.first<depth_sensor>();
     depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
-
-    _pipe = new pipeline();
+	_roi = new roi_sensor(dev.first<rs2::depth_sensor>());
+    _pipe = new pipeline(ctx);
 
 }
 bool rsCam::startStream()
@@ -58,14 +58,16 @@ rs2::frameset rsCam::RqDepthFrame()
 
 frmdata rsCam::RqFrameData(std::vector<float> vec)
 {
+	decimation_filter deci;
+	deci.set_option(RS2_OPTION_FILTER_MAGNITUDE,3.0);
 	frmdata fd;
-	float minY = vec[0] - 1280/2;
-    float maxY = vec[2] - 1280/2;
+	float minY = vec[0] - 720/2;
+    float maxY = vec[2] - 720/2;
     float minX = vec[1] - 1280/2;
     float maxX = vec[3] - 1280/2;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            //filtering(depth, 10);
+            depth = deci.process(depth);
             pointcloud pc;
             _pts = pc.calculate(depth);
             auto arr =  _pts.get_vertices();
@@ -122,10 +124,12 @@ void rsCam::filtering(depth_frame& frame, int i)
 {
     disparity_transform depth2Disparity;
     disparity_transform disparity2Depth(false);
-
+	
+	decimation_filter deci;
     spatial_filter spat;
     temporal_filter temp;
 
+	deci.set_option(RS2_OPTION_FILTER_MAGNITUDE,2.0);
     spat.set_option(RS2_OPTION_HOLES_FILL, 4);
     frame = depth2Disparity.process((frame));
     for (int j = 0; j < i;j++)
@@ -138,9 +142,26 @@ void rsCam::filtering(depth_frame& frame, int i)
         }
     frame = spat.process(frame);
     frame = disparity2Depth.process(frame);
+	//frame = deci.process(frame);
+}
+
+bool rsCam::setROI(std::vector<float> vec)
+{
+	rs2::region_of_interest temp;
+	temp.min_x = (int)vec[1];// - 1280/2;
+	temp.max_x = (int)vec[3];// - 1280/2;
+	temp.min_y = (int)vec[0];// - 1280/2;	
+	temp.max_y = (int)vec[2];// - 1280/2;
+	_roi->set_region_of_interest(temp);
+	return true;
+}	
+void rsCam::stopStream()
+{
+	_pipe->stop();
 }
 rsCam::~rsCam()
 {
 	_pipe->stop();
+	delete _roi;
     delete _pipe;
 }
