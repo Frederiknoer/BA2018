@@ -11,13 +11,13 @@ using namespace std;
 #define conv_velocity 528.5f		// mm / ms
 #define RSx 1280
 #define RSy 720
-#define fps 30
+#define fps 6
 
 SafeQueue sq;
 
 std::vector<float> initProgram(int camPlace)
 {
-    rsCam tempCam(RSx, RSy, fps);
+    rsCam tempCam(RSx, RSy, fps, camPlace);
     OpenCV ocvWS;
 	if(!tempCam.startStream()) throw std::runtime_error("Couldnt start stream");;
 
@@ -97,6 +97,7 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 	double traysum;
 	long int ite;
 	double firstframe;
+	int resX, resY;
 	//std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
 
 
@@ -123,6 +124,10 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 					pclObj.insertCloud(emptyTrayVec_f);
 					pclObj.findPlane();
 					pclObj.setNormals(camPlace);
+					std::cout << "resX" << std::endl;
+					std::cin >> resX;
+					std::cout << "resY" << std::endl;
+					std::cin >> resY;
 					break;}
 			default:{
 				throw std::runtime_error("Invalid input");
@@ -285,21 +290,22 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
             case 4 :
             {
 				auto framedata = sq.dequeue();
-				if ( ite%3 == 0 )
+				if ( ite%6 == 0 )
 				{
 					firstframe = framedata.timestamp;
 				}
 				float shift = (pclObj.convSpeed*(framedata.timestamp-firstframe))/1000.0f;
-				pclObj.InputToMultiCloud(multi_cloud,framedata,shift);
+				pclObj.InputToMultiCloud(multi_cloud,framedata,0.0f);
 				//std::cout << "fuck this shit " << framedata.timestamp-firstframe << " - " << shift <<  std::endl;
-				if (ite%3 == 2)
+				if (ite%6 == 5)
 				{
 					std::cout << multi_cloud->size() << std::endl;
-					pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
-					float sum1 =  pclObj.NumIntegration(multi_cloud,800,350,outlierVec);
-					std::cout << std::fixed <<  "sum " <<1000 << "x" <<200 << " : " << sum1 << std::endl;
+					//pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
+					float sum1 =  pclObj.NumIntegration(multi_cloud,resX,resY,outlierVec);
+					std::cout << std::fixed <<  "sum " <<resX << "x" <<resY << " : " << sum1 << std::endl;
 					multi_cloud->clear();
-					std::cin.get();
+					sq.clearQueue();
+					//std::cin.get();
 				}   
 				ite++;
                 break;
@@ -315,7 +321,7 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 
 void getFrames(std::vector<float> WS, float speed, int camPlace)
 {
-    rsCam cam(RSx,RSy,fps);
+    rsCam cam(RSx,RSy,fps, camPlace);
     std::vector<Algorithms::pts> tempVec(RSx*RSy);
 	while(!cam.setROI(WS));
     cam.startStream();
@@ -539,7 +545,7 @@ void testmode(int camplace, std::vector<float> workSpace)
     Algorithms algo;
 	PclPlane pclObj;
 	OpenCV ocvGarment;
-	rsCam cam(RSx,RSy,fps);
+	rsCam cam(RSx,RSy,fps, camplace);
 	while(!cam.setROI(workSpace));
     cam.startStream();
 

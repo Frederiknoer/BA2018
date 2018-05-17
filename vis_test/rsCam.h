@@ -1,9 +1,11 @@
 
 #include <librealsense2/rs.hpp>
-//#include <librealsense2/rs_advanced_mode.hpp>
+#include <librealsense2/rs_advanced_mode.hpp>
 #include <Eigen/SVD>
 #include <cstring>
 #include <iostream>
+#include <fstream>
+#include <streambuf>
 #include <boost/thread/thread.hpp>
 #include "Algorithms.h"
 #include <functional>
@@ -22,7 +24,7 @@ class rsCam
 {
 public:
     rsCam();
-    rsCam(int x, int y, int fps);
+    rsCam(int x, int y, int fps,int CP);
     bool startStream();
 	void stopStream();
 
@@ -37,6 +39,7 @@ public:
 private:
     pipeline* _pipe;
     rs2::config _cfg;
+	rs2::device _dev;
     points _pts;
     void filtering(depth_frame& frame, int i);
 

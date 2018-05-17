@@ -421,9 +421,14 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0,
 											rs.vtx[i].y*1000.0,
 											rs.vtx[i].z*1000.0));*/
+			//if (camPlace == 1)
 					pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*(nY[0]+nY[1]+nY[2]),
 											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));
+		/*	else 
+				pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2])-shift,
+											rs.vtx[i].y*(nY[0]+nY[1]+nY[2]),
+											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));*/
 	}
 }
 float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY, std::vector<float> corners)		// Indsæt 
@@ -493,10 +498,10 @@ void PclPlane::measureVelocity(rsCam& cam,std::vector<float> corners)
 		std::cout << arr[i].vtx.size() << std::endl;
 		for(int j = 0; j < (arr[i].vtx.size()); j ++)
 	 	{
-			if (getDistToPlane(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z) > 7.5f)
-			{ 
+			//if (getDistToPlane(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z) > 7.5f)
+			//{ 
 				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z));
-			}
+			//}
     	}
 	pcl::io::savePCDFileASCII (std::to_string(i) + "_velocity_" + std::to_string(arr[i].timestamp - temp) + ".txt", *vel_cloud);
 	temp = arr[i].timestamp;
@@ -507,17 +512,17 @@ void PclPlane::setNormals(int camplace)
 {
 	if (camplace == 1)
 	{
-		convSpeed = 528.5f;
+		convSpeed = 485.0f;
 		float nX[3] = {0.9948f, 0.021f,-0.0996f};
 		float nY[3] = {0.017f, -0.999f,-0.0404f};
 		float nZ[3] = {0.1004f, -0.0385f,0.9942f}; 
 	}
 	else
 	{
-		convSpeed = 600.0f;
-		float nX[3] = {0.9950f, 0.0044f,-0.0995f};
-		float nY[3] = {0.00069f, -0.9993f,-0.0368f};
-		float nZ[3] = {0.0996f, -0.0366f,0.9944f}; 
+		convSpeed = 540.9f;
+		float nX[3] = {0.0196f, -0.9864f,-0.1632f};
+		float nY[3] = {-0.9998f, -0.0199f,0.00033f};
+		float nZ[3] = {0.0036f, -0.1631f,0.9866f}; 
 	}
 
 }

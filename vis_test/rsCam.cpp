@@ -1,7 +1,7 @@
 #include "rsCam.h"
 
 rsCam::rsCam(){};
-rsCam::rsCam(int x, int y, int fps)
+rsCam::rsCam(int x, int y, int fps, int CP)
 {
     context ctx;
     auto list = ctx.query_devices();
@@ -21,6 +21,15 @@ rsCam::rsCam(int x, int y, int fps)
     depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
 	_roi = new roi_sensor(dev.first<rs2::depth_sensor>());
     _pipe = new pipeline(ctx);
+
+	if (CP == 2)
+	{
+		std::ifstream t("xray-settings.json");
+		std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+		rs400::advanced_mode deva = dev;
+		deva.load_json(str);
+		std::cout << "JSON loaded" << std::endl;
+	}
 
 }
 bool rsCam::startStream()
@@ -67,7 +76,7 @@ frmdata rsCam::RqFrameData(std::vector<float> vec)
     float maxX = vec[3] - 1280/2;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            //depth = deci.process(depth);
+            depth = deci.process(depth);
             pointcloud pc;
             _pts = pc.calculate(depth);
             auto arr =  _pts.get_vertices();
