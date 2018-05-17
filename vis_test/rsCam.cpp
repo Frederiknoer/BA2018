@@ -67,7 +67,7 @@ frmdata rsCam::RqFrameData(std::vector<float> vec)
     float maxX = vec[3] - 1280/2;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            depth = deci.process(depth);
+            //depth = deci.process(depth);
             pointcloud pc;
             _pts = pc.calculate(depth);
             auto arr =  _pts.get_vertices();

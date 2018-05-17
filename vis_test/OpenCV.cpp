@@ -12,7 +12,6 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
     int imgRow = 1280;
     int imgCol = 720;
 
-   
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
     cv::Mat threshCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
 
@@ -32,21 +31,17 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
             if(abs(y) < 720/2 && abs(x) < 1280/2)
             {
                 if (z > 1 && z < 75)
-                {
                     cvCloudPt[row*imgCol+col] = z;
-                }
                 else if(z < 750)
-                {
                     cvCloudPt[row*imgCol+col] = 0;
-                }
             }
 
         }
     }
     orgImage = cvCloud;
     thresholdImage = threshCloud;
-
     //cv::imshow("cvCloud", cvCloud);
+    //cv::waitKey(0);
     //cv::waitKey(0);
 }
 
@@ -94,12 +89,14 @@ void OpenCV::create2dDepthImageFromPlane(std::vector<Algorithms::pts> inputCloud
 
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
-        if (dist > 0.5)
+        if (dist > 5)
             cvCloudPt[row*imgCol+col] = dist;
         else
             cvCloudPt[row*imgCol+col] = 0;
     }
     //std::cout << "projection done!" << std::endl;
+    //cv::imshow("cvCloud", cvCloud);
+    //cv::waitKey(0);
     orgImage = cvCloud;
     thresholdImage = threshCloud;
 
@@ -141,10 +138,10 @@ void OpenCV::create2dDepthImageFloat(std::vector<Algorithms::pts> inputCloud)
 
         row = (int)(x+(abs(xMin)));
         col = (int)(y+(abs(yMin)));
-        if (dist > 0.1)
+        if (dist > 0.5)
             floatImg.at<float>(row,col) = dist;
         else
-            floatImg.at<float>(row,col) = 0;
+            floatImg.at<float>(row,col) = 0.0f;
     }
     floatImage = floatImg;
 }
@@ -190,14 +187,14 @@ void OpenCV::findBoundingBox(float lowerDiagonolThreshold, float upperDiagonolTh
     //Draws the bounding boxes
 
     cv::Mat drawing (thresholdImage.size(), CV_8UC1, cv::Scalar(0));
-    drawing = orgImage;
+    //drawing = orgImage;
 
     for( size_t i = 0; i < boundingBoxes.size(); i++ )
     {
         drawContours( drawing, contours_poly, (int)i, 125, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point(0,0) );
         rectangle( drawing, rectThresh[i].tl(), rectThresh[i].br(), 125, 2, 8, 0 );
     }
-
+    draw = drawing;
     //cv::namedWindow( "Contours", cv::WINDOW_AUTOSIZE);
     //imshow( "Contours", drawing );
     //cv::imwrite("emptyTrayCon1.jpg", drawing);
@@ -223,11 +220,10 @@ void OpenCV::findRoatedBoundingBox(float lowerDiagonolThreshold, float upperDiag
 
         static double brDist = 0.0;
         brDist = sqrt(pow((minRect[i].boundingRect().tl().x - minRect[i].boundingRect().br().x),2) +
-                              pow((minRect[i].boundingRect().tl().x - minRect[i].boundingRect().br().x),2));
+                      pow((minRect[i].boundingRect().tl().x - minRect[i].boundingRect().br().x),2));
         if(brDist > lowerDiagonolThreshold && brDist < upperDiagonolThreshold)
             rectThresh.push_back(minRect[i].boundingRect());
     }
-
     boundingBoxes = rectThresh;
     //std::cout << boundingBoxes.size() << std::endl;
 
@@ -255,10 +251,11 @@ double OpenCV::findVolumeWithinBoxes()
     std::cout << "Finding Volume for " << boundingBoxes.size() << " box(es) .." << std::endl;
     double volume = 0.0;
     double volumeSum = 0.0;
+
     for(int i = 0; i < boundingBoxes.size(); i++)
     {
         volume = cv::sum(floatImage(boundingBoxes[i]))[0];
-        std::cout << "Volume for box " << i+1 << ": " << volume << std::endl;
+        //std::cout << "Volume for box " << i+1 << ": " << volume << std::endl;
         volumeSum += volume;
     }
     return volumeSum;
@@ -269,10 +266,10 @@ std::vector<float> OpenCV::getBoundingBoxCorners()
     std::vector<float> boxVec;
     for(int i = 0; i < boundingBoxes.size(); i++)
     {
-        boxVec.push_back(boundingBoxes[i].tl().x);
-        boxVec.push_back(boundingBoxes[i].tl().y);
-        boxVec.push_back(boundingBoxes[i].br().x);
-        boxVec.push_back(boundingBoxes[i].br().y);
+        boxVec.push_back(boundingBoxes[i].tl().x); //min y
+        boxVec.push_back(boundingBoxes[i].tl().y); //min x
+        boxVec.push_back(boundingBoxes[i].br().x); //max y
+        boxVec.push_back(boundingBoxes[i].br().y); //max x
     }
     //std::cout << "Bounding boxes returned(" << boxVec.size() <<")" << std::endl;
     return boxVec;
@@ -308,7 +305,7 @@ float OpenCV::getMedian(Algorithms::pts pt)
     perimeter[6] = floatImage.at<float>(pt.x - 1, pt.y - 1);
     perimeter[7] = floatImage.at<float>(pt.x - 1, pt.y);
 
-    float sum = 0.0f;
+    float sum = 0;
     int counter = 0;
     for(int i = 0; i < 8; i++)
     {
@@ -321,19 +318,38 @@ float OpenCV::getMedian(Algorithms::pts pt)
     if (counter > 3)
         return (sum/counter);
     else
-        return 0.0f;
+        return 0;
 }
 
 void OpenCV::cv1(std::vector<Algorithms::pts> inputCloud)
 {
+    //uchar* cvCloudPt = orgImage.data;
     create2dDepthImageFromPlane(inputCloud);
-    threshold('N', 10);
-    findBoundingBox(100, 1000);
+    threshold('N', 7.5);
+    findBoundingBox(100, 1200);
+    if(getBoundingBoxCorners().size() > 4)
+    {
+        orgImage = draw;
+
+        for (int i = 0; i < boundingBoxes.size(); i++)
+        {
+            for (int y = boundingBoxes[i].tl().x; y < boundingBoxes[i].br().x; y++)
+                for (int x = boundingBoxes[i].tl().y; x < boundingBoxes[i].br().y; x++)
+                {
+                    orgImage.at<uchar>(x,y) = 55;
+                }
+        }
+        for (int i = 0; i < boundingBoxes.size(); i++)
+            boundingBoxes.pop_back();
+
+        threshold('N', 50);
+        findBoundingBox(100, 1200);
+    }
 }
 
 void OpenCV::cv2(std::vector<Algorithms::pts> inputCloud)
 {
     create2dDepthImageFromPlane(inputCloud);
-    threshold('N', 12.5);
+    threshold('N', 10);
     findRoatedBoundingBox(100, 950);
 }

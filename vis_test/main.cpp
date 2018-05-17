@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define conv_velocity 576.3f		// mm / ms
+#define conv_velocity 528.5f		// mm / ms
 #define RSx 1280
 #define RSy 720
 #define fps 30
@@ -62,10 +62,10 @@ std::vector<float> initProgram(int camPlace)
         if(outlierVector.size() != 4)
             cout << "bad WS" << endl;
 
-        outlierVector[0] = outlierVector[0]; //min y
-        outlierVector[1] = outlierVector[1] + 65; //min x
-        outlierVector[2] = outlierVector[2]; //max y
-        outlierVector[3] = outlierVector[3] - 20; //max x
+        outlierVector[0] = outlierVector[0] + 5; //min y
+        outlierVector[1] = outlierVector[1] + 75; //min x
+        outlierVector[2] = outlierVector[2] + 5; //max y
+        outlierVector[3] = outlierVector[3] - 50; //max x
         //cout << "Y dist(WS): " << outlierVector[0] << "-" << outlierVector[2] << "   X dist(WS): " << outlierVector[1] << "-" << outlierVector[3] << endl;
         //cout << "Init done" << endl;
     }
@@ -74,7 +74,7 @@ std::vector<float> initProgram(int camPlace)
     return outlierVector;
 }
 
-void volumeEstimate(std::vector<float> outlierVec)
+void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 {
     std::vector<Algorithms::pts> TrayVec(RSx*RSy);
     Algorithms algo;
@@ -122,6 +122,7 @@ void volumeEstimate(std::vector<float> outlierVec)
 					double firstframe = 0.0f;
 					pclObj.insertCloud(emptyTrayVec_f);
 					pclObj.findPlane();
+					pclObj.setNormals(camPlace);
 					break;}
 			default:{
 				throw std::runtime_error("Invalid input");
@@ -288,7 +289,7 @@ void volumeEstimate(std::vector<float> outlierVec)
 				{
 					firstframe = framedata.timestamp;
 				}
-				float shift = (conv_velocity*(framedata.timestamp-firstframe))/1000.0f;
+				float shift = (pclObj.convSpeed*(framedata.timestamp-firstframe))/1000.0f;
 				pclObj.InputToMultiCloud(multi_cloud,framedata,shift);
 				//std::cout << "fuck this shit " << framedata.timestamp-firstframe << " - " << shift <<  std::endl;
 				if (ite%3 == 2)
@@ -533,17 +534,20 @@ void movingVolumeEstimation(PclPlane& plan, rsCam& cam)		//
 	//visualizingIntegration(plan,multi_cloud,500,500);
 }
 */
-testmode(int camplace, std::vector<float> workSpace)
+void testmode(int camplace, std::vector<float> workSpace)
 {
     Algorithms algo;
 	PclPlane pclObj;
 	OpenCV ocvGarment;
 	rsCam cam(RSx,RSy,fps);
-	while(!cam.setROI(WS));
+	while(!cam.setROI(workSpace));
     cam.startStream();
 
 	std::vector<Algorithms::pts> TrayVec;
 	PointCloud<pcl::PointXYZ>::Ptr objCloud (new pcl::PointCloud<pcl::PointXYZ>);
+	TrayVec = cam.RqFrameData(workSpace).vtx;
+	pclObj.insertCloud(TrayVec);
+	pclObj.findPlane();
     PointXYZ tempPoint;
 	double traysum;
 	int mode = 1;
@@ -594,7 +598,7 @@ int main (int argc, char * argv[]) try
     });
     std::thread t2([&]()
     {
-        (volumeEstimate(workSpace));
+        (volumeEstimate(workSpace, camPlace));
 		
     });
 

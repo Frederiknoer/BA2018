@@ -503,4 +503,22 @@ void PclPlane::measureVelocity(rsCam& cam,std::vector<float> corners)
 	vel_cloud->clear();
 	}
 }
+void PclPlane::setNormals(int camplace)
+{
+	if (camplace == 1)
+	{
+		convSpeed = 528.5f;
+		float nX[3] = {0.9948f, 0.021f,-0.0996f};
+		float nY[3] = {0.017f, -0.999f,-0.0404f};
+		float nZ[3] = {0.1004f, -0.0385f,0.9942f}; 
+	}
+	else
+	{
+		convSpeed = 600.0f;
+		float nX[3] = {0.9950f, 0.0044f,-0.0995f};
+		float nY[3] = {0.00069f, -0.9993f,-0.0368f};
+		float nZ[3] = {0.0996f, -0.0366f,0.9944f}; 
+	}
+
+}
 PclPlane::~PclPlane() {}

@@ -51,6 +51,7 @@ private:
     Algorithms alg;
     cv::Mat floatImage;
     cv::Mat orgImage;
+	cv::Mat draw;
     cv::Mat thresholdImage;
     std::vector<cv::Rect> boundingBoxes;
 
