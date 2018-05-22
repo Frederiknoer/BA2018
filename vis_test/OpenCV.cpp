@@ -342,8 +342,11 @@ void OpenCV::cv1(std::vector<Algorithms::pts> inputCloud)
         for (int i = 0; i < boundingBoxes.size(); i++)
             boundingBoxes.pop_back();
 
+        //cv::imshow("test", orgImage);
+        //cv::waitKey(0);
+
         threshold('N', 50);
-        findBoundingBox(100, 1200);
+        findBoundingBox(125, 1200);
     }
 }
 

@@ -98,6 +98,7 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 	long int ite;
 	double firstframe;
 	int resX, resY;
+    std::vector<float> BBOX(4);//{0.0f,999999.0f,0.0f,9999999.0f};
 	//std::vector<Algorithms::pts> emptyTrayVec_f = algo.removeOutliers(TrayVec, outlierVec, 1280/2, 1280/2);
 
 
@@ -124,6 +125,7 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
 					pclObj.insertCloud(emptyTrayVec_f);
 					pclObj.findPlane();
 					pclObj.setNormals(camPlace);
+                    ocvGarment.loadPlane(emptyTrayVec_f);
 					std::cout << "resX" << std::endl;
 					std::cin >> resX;
 					std::cout << "resY" << std::endl;
@@ -289,23 +291,40 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
             }
             case 4 :
             {
-				auto framedata = sq.dequeue();
+				//auto framedata = sq.dequeue();
+                ocvGarment.cv1(objVec);
 				if ( ite%6 == 0 )
 				{
-					firstframe = framedata.timestamp;
+					firstframe = fd.timestamp;
+                    //ocvGarment.cv1(objVec);
+                    BBOX = {9999999.9f,9999999.9f,0.0f,0.0f};
+
+
+                    if (ocvGarment.getBoundingBoxCorners().empty()){
+                        break;
+                    }
 				}
-				float shift = (pclObj.convSpeed*(framedata.timestamp-firstframe))/1000.0f;
-				pclObj.InputToMultiCloud(multi_cloud,framedata,0.0f);
+                std::vector<float> corners = {ocvGarment.getBoundingBoxCorners()[0] - abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[1]- abs(ocvGarment.xMin),ocvGarment.getBoundingBoxCorners()[2]- abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[3]- abs(ocvGarment.xMin)};
+
+                if (corners[0] < BBOX[0]) BBOX[0] = corners[0];
+                if (corners[2] > BBOX[2]) BBOX[2] = corners[2];
+                if (corners[1] < BBOX[1]) BBOX[1] = corners[1];
+                if (corners[3] > BBOX[3]) BBOX[3] = corners[3];
+               // std::cout << BBOX[1] << " - " << BBOX[3]<< " - " << BBOX[0] << " - " << BBOX[2] << std::endl;
+                float shift = (pclObj.convSpeed*(fd.timestamp-firstframe))/1000.0f;
+				pclObj.InputToMultiCloud(multi_cloud,fd,0.0f, camPlace,corners);
 				//std::cout << "fuck this shit " << framedata.timestamp-firstframe << " - " << shift <<  std::endl;
 				if (ite%6 == 5)
 				{
+                    //std::vector<float> corners = {ocvGarment.getBoundingBoxCorners()[0] - abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[1]- abs(ocvGarment.xMin),ocvGarment.getBoundingBoxCorners()[2]- abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[3]- abs(ocvGarment.xMin)};
 					std::cout << multi_cloud->size() << std::endl;
 					//pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
-					float sum1 =  pclObj.NumIntegration(multi_cloud,resX,resY,outlierVec);
+					float sum1 =  pclObj.NumIntegration(multi_cloud,resX,resY,BBOX);
 					std::cout << std::fixed <<  "sum " <<resX << "x" <<resY << " : " << sum1 << std::endl;
 					multi_cloud->clear();
 					sq.clearQueue();
 					//std::cin.get();
+
 				}   
 				ite++;
                 break;

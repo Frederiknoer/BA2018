@@ -62,7 +62,7 @@ public:
     PointCloud<PointXYZ>::Ptr removeOutliers(PointCloud<PointXYZ>::Ptr outlier_cloud, std::vector<float> corners, float xDisplacement, float yDisplacement);
     void mergeSort(PointCloud<PointXYZ>::Ptr,int size);
 
-	void InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs,float shift);
+	void InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs,float shift,int camPlace,std::vector<float>corners);
 	float NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,std::vector<float> corners);
 
     ~PclPlane();

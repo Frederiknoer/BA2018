@@ -408,12 +408,13 @@ PointXYZ* PclPlane::mergeY(PointXYZ arr1[], int arr1Size, PointXYZ arr2[], int a
     }
     return temp;
 }
-void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift)
+void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float shift, int camPlace,std::vector<float> corners)
 {
 	for (int i = 0; i < rs.vtx.size(); i++)
 	{
+        //std::cout << i << std::endl;
 		//if (getDistToPlane(input_cloud->points[i].x,input_cloud->points[i].y,input_cloud->points[i].z) <= 5.0f)
-		//if ( rs.vtx[i].x < 356.996f && rs.vtx[i].x > -386.93f && rs.vtx[i].y < 217.987 && rs.vtx[i].y > -281.999f)
+		if ( rs.vtx[i].x < corners[3] && rs.vtx[i].x > corners[1] && rs.vtx[i].y < corners[2] && rs.vtx[i].y > corners[0])
 		if (getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z) > 7.5f && rs.vtx[i].z > 0.0f && rs.vtx[i].z < 1000.0f)
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*1000.0*(nY[0]+nY[1]+nY[2]),
@@ -421,37 +422,40 @@ void PclPlane::InputToMultiCloud(PointCloud<PointXYZ>::Ptr pc, frmdata rs, float
 					/*pc->push_back(PointXYZ( rs.vtx[i].x*1000.0,
 											rs.vtx[i].y*1000.0,
 											rs.vtx[i].z*1000.0));*/
-			//if (camPlace == 1)
+			if (camPlace == 1)
 					pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2])-shift,
 											rs.vtx[i].y*(nY[0]+nY[1]+nY[2]),
 											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));
-		/*	else 
-				pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2])-shift,
-											rs.vtx[i].y*(nY[0]+nY[1]+nY[2]),
-											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));*/
+			else
+				pc->push_back(PointXYZ( rs.vtx[i].x*(nX[0]+nX[1]+nX[2]),
+											rs.vtx[i].y*(nY[0]+nY[1]+nY[2])-shift,
+											getDistToPlane(rs.vtx[i].x,rs.vtx[i].y,rs.vtx[i].z)));
 	}
 }
 float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY, std::vector<float> corners)		// Indsæt 
 {
-	llist AccMat[resX+1][resY+1] = {};
+    float minY = corners[0] - 50;
+    float maxY = corners[2] + 50;
+    float minX = corners[1] - 50;
+    float maxX = corners[3] + 50;
+	llist AccMat[int(maxX-minX)+1][int(maxY-minY)+1] = {};
 	float sum = 0.0f;
-	float minY = corners[0] - 720/2 - 50;
-    float maxY = corners[2] - 720/2 + 50;
-    float minX = corners[1] - 1500;
-    float maxX = corners[3] - 1280/2 + 100;
+
 	std::cout << minX << " - " << maxX << " - " << minY << " - " << maxY << std::endl;
-	float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+	//float stepX = (maxX-minX)/(float)resX, stepY = (maxY-minY)/(float)resY;
+    float stepX = 1.0f, stepY = 1.0f;
 	std::cout << "stepX " << stepX << " - " << " stepY " << stepY << std::endl;
 	for (int i = 0; i < pc->size(); i++)
 	{
+        if ( pc->points[i].x < maxX && pc->points[i].x > minX && pc->points[i].y < maxY && pc->points[i].y > minY)
 		//std::cout << "x " << (int)((pc->points[i].x-minX)/stepX) << std::endl;
 		//std::cout << "y " << (int)((pc->points[i].y-minY)/stepY) << std::endl;
 //		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(plan.getDistToPlane(pc->points[i].x,pc->points[i].y,pc->points[i].z));			
-		AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);		
+		    AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);
 	}
 	std::cout << "hej patrick" << std::endl;
-	for (int i = 0; i <= resX;i++)
-		for(int j = 0; j <= resY;j++)
+	for (int i = 1; i < maxX-minX;i++)
+		for(int j = 1; j < maxY-minY;j++)
 		{
 			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
 			{
@@ -465,7 +469,7 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
 				AccMat[i][j].append(AccMat[i+1][j+1].average());
 				AccMat[i][j].append(AccMat[i-1][j+1].average());
 			}*/
-			if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)				// Median filtering
+			if (AccMat[i][j].isEmpty() && i > 1 && j > 1 && i && i < maxX-minX - 1 && j < maxY-minY - 1)				// Median filtering
 			{
 				AccMat[i][j].insertSort(AccMat[i-1][j].median());
 				AccMat[i][j].insertSort(AccMat[i][j-1].median());
@@ -495,14 +499,15 @@ void PclPlane::measureVelocity(rsCam& cam,std::vector<float> corners)
 	double temp = 0.0;
 	for (int i = 0; i < 4;i++)
 	{
-		std::cout << arr[i].vtx.size() << std::endl;
+		//std::cout << arr[i].vtx.size() << std::endl;
 		for(int j = 0; j < (arr[i].vtx.size()); j ++)
 	 	{
-			//if (getDistToPlane(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z) > 7.5f)
-			//{ 
+			if (getDistToPlane(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z) > 7.5f)
+			{
 				vel_cloud->push_back(PointXYZ(arr[i].vtx[j].x,arr[i].vtx[j].y,arr[i].vtx[j].z));
-			//}
+			}
     	}
+        std::cout << vel_cloud->size() << std::endl;
 	pcl::io::savePCDFileASCII (std::to_string(i) + "_velocity_" + std::to_string(arr[i].timestamp - temp) + ".txt", *vel_cloud);
 	temp = arr[i].timestamp;
 	vel_cloud->clear();
@@ -513,16 +518,16 @@ void PclPlane::setNormals(int camplace)
 	if (camplace == 1)
 	{
 		convSpeed = 485.0f;
-		float nX[3] = {0.9948f, 0.021f,-0.0996f};
-		float nY[3] = {0.017f, -0.999f,-0.0404f};
-		float nZ[3] = {0.1004f, -0.0385f,0.9942f}; 
+		float nX[3] = {0.9952f, 0.0208f,-0.0961f};
+		float nY[3] = {0.0177f, -0.9993f,-0.0334f};
+		float nZ[3] = {0.0967f, -0.0315f,0.9948f};
 	}
 	else
 	{
-		convSpeed = 540.9f;
-		float nX[3] = {0.0196f, -0.9864f,-0.1632f};
-		float nY[3] = {-0.9998f, -0.0199f,0.00033f};
-		float nZ[3] = {0.0036f, -0.1631f,0.9866f}; 
+		convSpeed = 600.0f;
+		float nX[3] = {-0.9998f, -0.0199f,0.00033f};
+		float nY[3] = {0.0196f, -0.9864f,-0.1632f};
+		float nZ[3] = {0.0036f, -0.1631f,0.9866f};
 	}
 
 }
