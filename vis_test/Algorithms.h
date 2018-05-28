@@ -5,6 +5,8 @@
 #ifndef VIS_TEST_ALGORITHMS_H
 #define VIS_TEST_ALGORITHMS_H
 
+#define RSx 1280
+#define RSy 720
 
 #include <vector>
 #include <cmath>
@@ -118,12 +120,13 @@ public:
 			return 0.0f;
 		while (temp2 != NULL && temp2->next != NULL)
 		{
-			if (temp2 == NULL)
-				return (temp->value+tempval)/2.0f;
+
 			temp = temp->next;
 			temp2 = temp2->next->next;
 			tempval = temp->value;
 		}
+        if (temp2 == NULL)
+            return (temp->value+tempval)/2.0f;
 		return temp->value;
 	}
 	float average()

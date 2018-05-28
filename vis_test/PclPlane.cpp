@@ -438,7 +438,7 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
     float maxY = corners[2] + 50;
     float minX = corners[1] - 50;
     float maxX = corners[3] + 50;
-	llist AccMat[int(maxX-minX)+1][int(maxY-minY)+1] = {};
+	llist AccMat[int(abs(maxX-minX))+1][int(abs(maxY-minY))+1] = {};
 	float sum = 0.0f;
 
 	std::cout << minX << " - " << maxX << " - " << minY << " - " << maxY << std::endl;
@@ -454,8 +454,8 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
 		    AccMat[(int)((pc->points[i].x-minX)/stepX)][(int)((pc->points[i].y-minY)/stepY)].insertSort(pc->points[i].z);
 	}
 	std::cout << "hej patrick" << std::endl;
-	for (int i = 1; i < maxX-minX;i++)
-		for(int j = 1; j < maxY-minY;j++)
+	for (int i = 1; i < abs(maxX-minX);i++)
+		for(int j = 1; j < abs(maxY-minY);j++)
 		{
 			/*if (AccMat[i][j].isEmpty() && i > 0 && j > 0 && i && i < resX && j < resY)			// Average filtering
 			{
@@ -469,7 +469,7 @@ float PclPlane::NumIntegration(PointCloud<PointXYZ>::Ptr pc, int resX, int resY,
 				AccMat[i][j].append(AccMat[i+1][j+1].average());
 				AccMat[i][j].append(AccMat[i-1][j+1].average());
 			}*/
-			if (AccMat[i][j].isEmpty() && i > 1 && j > 1 && i && i < maxX-minX - 1 && j < maxY-minY - 1)				// Median filtering
+			if (AccMat[i][j].isEmpty() && i > 1 && j > 1 && i && i < abs(maxX-minX) - 1 && j < abs(maxY-minY) - 1)				// Median filtering
 			{
 				AccMat[i][j].insertSort(AccMat[i-1][j].median());
 				AccMat[i][j].insertSort(AccMat[i][j-1].median());

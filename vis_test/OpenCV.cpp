@@ -9,8 +9,8 @@ OpenCV::OpenCV() {}
 
 void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
 {
-    int imgRow = 1280;
-    int imgCol = 720;
+    int imgRow = RSx;
+    int imgCol = RSy;
 
     cv::Mat cvCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
     cv::Mat threshCloud(imgRow, imgCol, CV_8UC1, cv::Scalar(0));
@@ -24,11 +24,11 @@ void OpenCV::create2dDepthImage(std::vector<Algorithms::pts> inputCloud)
         x = (inputCloud[i].x);
         y = (inputCloud[i].y);
         z = (inputCloud[i].z);
-        if (x < 1280 && y < 720)
+        if (x < RSx && y < RSy)
         {
-            row = (int)(x+(1280/2));
-            col = (int)(y+(720/2));
-            if(abs(y) < 720/2 && abs(x) < 1280/2)
+            row = (int)(x+(RSx/2));
+            col = (int)(y+(RSy/2));
+            if(abs(y) < RSy/2 && abs(x) < RSx/2)
             {
                 if (z > 1 && z < 75)
                     cvCloudPt[row*imgCol+col] = z;
@@ -258,6 +258,11 @@ double OpenCV::findVolumeWithinBoxes()
         //std::cout << "Volume for box " << i+1 << ": " << volume << std::endl;
         volumeSum += volume;
     }
+    /*std::vector<int> compression_params;
+    compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(9);
+    cv::imwrite(std::to_string(counter) + "imtest.jpg", floatImage, compression_params);
+    counter ++;*/
     return volumeSum;
 }
 

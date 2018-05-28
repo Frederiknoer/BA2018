@@ -54,6 +54,7 @@ private:
 	cv::Mat draw;
     cv::Mat thresholdImage;
     std::vector<cv::Rect> boundingBoxes;
+    int counter = 0;
 
 };
 

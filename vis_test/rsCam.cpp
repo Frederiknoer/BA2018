@@ -17,24 +17,40 @@ rsCam::rsCam(int x, int y, int fps, int CP)
     //config cfg;
     _cfg.enable_stream(RS2_STREAM_DEPTH,x,y,RS2_FORMAT_Z16,fps);
 
-    auto depth_sens = dev.first<depth_sensor>();
-    depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
+    //auto depth_sens = dev.first<depth_sensor>();
+    //depth_sens.set_option(RS2_OPTION_LASER_POWER, 360);
 	_roi = new roi_sensor(dev.first<rs2::depth_sensor>());
     _pipe = new pipeline(ctx);
 
-	if (CP == 2)
+	if (CP == 2 && x == 1280)
 	{
-		std::ifstream t("xray-settings.json");
+		std::ifstream t("XRAY1280x720x30.json");
 		std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 		rs400::advanced_mode deva = dev;
 		deva.load_json(str);
 		std::cout << "JSON loaded" << std::endl;
 	}
+    else if (CP == 2 && x == 848 && fps == 15)
+    {
+        std::ifstream t("XRAY848x480x15.json");
+        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+        rs400::advanced_mode deva = dev;
+        deva.load_json(str);
+        std::cout << "JSON loaded" << std::endl;
+    }
+    else if (CP == 2 && x == 848 && fps == 60)
+    {
+        std::ifstream t("XRAY848x480x60.json");
+        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+        rs400::advanced_mode deva = dev;
+        deva.load_json(str);
+        std::cout << "JSON loaded" << std::endl;
+    }
 
 }
 bool rsCam::startStream()
 {
-    _pipe->start(_cfg);
+    _pipe->start();
     for (int i = 0; i < 30; i++)_pipe->wait_for_frames();
     return true;
 }
@@ -43,7 +59,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     const vertex* list;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
-            filtering(depth, 15);
+            filtering(depth, 30);
             pointcloud pc;
             _pts = pc.calculate(depth);
             list = _pts.get_vertices();
@@ -53,7 +69,7 @@ const rs2::vertex* rsCam::RqSingleFrame()
     {
         return list;
     }
-    else throw std::runtime_error("Can't fint depth stream");
+    else throw std::runtime_error("Can't find depth stream");
 }
 
 rs2::frameset rsCam::RqDepthFrame()
@@ -70,12 +86,13 @@ frmdata rsCam::RqFrameData(std::vector<float> vec)
 	decimation_filter deci;
 	deci.set_option(RS2_OPTION_FILTER_MAGNITUDE,2.0);
 	frmdata fd;
-	float minY = vec[0] - 720/2;
-    float maxY = vec[2] - 720/2;
-    float minX = vec[1] - 1280/2;
-    float maxX = vec[3] - 1280/2;
+	float minY = vec[0] - RSy/2;
+    float maxY = vec[2] - RSy/2;
+    float minX = vec[1] - RSx/2;
+    float maxX = vec[3] - RSx/2;
     for (auto&& frames : _pipe->wait_for_frames()) {
         if (auto depth = frames.as<depth_frame>()) {
+            //filtering(depth,0);
             //depth = deci.process(depth);
             pointcloud pc;
             _pts = pc.calculate(depth);
@@ -139,7 +156,7 @@ void rsCam::filtering(depth_frame& frame, int i)
     temporal_filter temp;
 
 	deci.set_option(RS2_OPTION_FILTER_MAGNITUDE,2.0);
-    spat.set_option(RS2_OPTION_HOLES_FILL, 4);
+    spat.set_option(RS2_OPTION_HOLES_FILL, 2);
     frame = depth2Disparity.process((frame));
     for (int j = 0; j < i;j++)
         for(auto && frames : _pipe->wait_for_frames())
@@ -170,7 +187,7 @@ void rsCam::stopStream()
 }
 rsCam::~rsCam()
 {
-	_pipe->stop();
+	//_pipe->stop();
 	delete _roi;
     delete _pipe;
 }

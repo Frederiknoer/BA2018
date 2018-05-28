@@ -9,9 +9,11 @@
 using namespace std;
 
 #define conv_velocity 528.5f		// mm / ms
-#define RSx 1280
-#define RSy 720
-#define fps 6
+//#define RSx 1280
+//#define RSy 720
+#define fps 30
+
+
 
 SafeQueue sq;
 
@@ -25,6 +27,7 @@ std::vector<float> initProgram(int camPlace)
 
     //cout << "Taking picture of empty plane..." << endl;
     auto rsFrame = tempCam.RqSingleFrame();
+
 	//tempCam.stopStream();
     std::vector<Algorithms::pts> emptyTrayVec(RSx*RSy);
     for(int i = 0; i < RSx*RSy; i++)
@@ -178,7 +181,7 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
                 if(!(ocvGarment.getBoundingBoxCorners().empty()))
                 {
                     ocvGarment.interPolate();
-                    cout << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl;
+                    cout << fixed << "Volume: " << ocvGarment.findVolumeWithinBoxes() << endl << endl;
                 }
 
 
@@ -292,18 +295,34 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
             case 4 :
             {
 				//auto framedata = sq.dequeue();
+                if (ite%6 == 5)
+                {
+                    //std::vector<float> corners = {ocvGarment.getBoundingBoxCorners()[0] - abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[1]- abs(ocvGarment.xMin),ocvGarment.getBoundingBoxCorners()[2]- abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[3]- abs(ocvGarment.xMin)};
+                    std::cout << multi_cloud->size() << std::endl;
+                    //pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
+                    float sum1 =  pclObj.NumIntegration(multi_cloud,resX,resY,BBOX);
+                    std::cout << std::fixed <<  "sum " <<resX << "x" <<resY << " : " << sum1 << std::endl;
+                    multi_cloud->clear();
+                    sq.clearQueue();
+                    //std::cin.get();
+
+                }
                 ocvGarment.cv1(objVec);
 				if ( ite%6 == 0 )
 				{
 					firstframe = fd.timestamp;
                     //ocvGarment.cv1(objVec);
-                    BBOX = {9999999.9f,9999999.9f,0.0f,0.0f};
+                    BBOX = {9999999.9f,9999999.9f,-999999.0f,-999999.0f};
 
 
                     if (ocvGarment.getBoundingBoxCorners().empty()){
                         break;
                     }
 				}
+                if (ocvGarment.getBoundingBoxCorners().empty()){
+                    ite++;
+                    break;
+                }
                 std::vector<float> corners = {ocvGarment.getBoundingBoxCorners()[0] - abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[1]- abs(ocvGarment.xMin),ocvGarment.getBoundingBoxCorners()[2]- abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[3]- abs(ocvGarment.xMin)};
 
                 if (corners[0] < BBOX[0]) BBOX[0] = corners[0];
@@ -312,20 +331,9 @@ void volumeEstimate(std::vector<float> outlierVec, int camPlace)
                 if (corners[3] > BBOX[3]) BBOX[3] = corners[3];
                // std::cout << BBOX[1] << " - " << BBOX[3]<< " - " << BBOX[0] << " - " << BBOX[2] << std::endl;
                 float shift = (pclObj.convSpeed*(fd.timestamp-firstframe))/1000.0f;
-				pclObj.InputToMultiCloud(multi_cloud,fd,0.0f, camPlace,corners);
+				pclObj.InputToMultiCloud(multi_cloud,fd,shift, camPlace,corners);
 				//std::cout << "fuck this shit " << framedata.timestamp-firstframe << " - " << shift <<  std::endl;
-				if (ite%6 == 5)
-				{
-                    //std::vector<float> corners = {ocvGarment.getBoundingBoxCorners()[0] - abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[1]- abs(ocvGarment.xMin),ocvGarment.getBoundingBoxCorners()[2]- abs(ocvGarment.yMin),ocvGarment.getBoundingBoxCorners()[3]- abs(ocvGarment.xMin)};
-					std::cout << multi_cloud->size() << std::endl;
-					//pcl::io::savePCDFileASCII ("planetest", *multi_cloud);
-					float sum1 =  pclObj.NumIntegration(multi_cloud,resX,resY,BBOX);
-					std::cout << std::fixed <<  "sum " <<resX << "x" <<resY << " : " << sum1 << std::endl;
-					multi_cloud->clear();
-					sq.clearQueue();
-					//std::cin.get();
 
-				}   
 				ite++;
                 break;
             }
@@ -614,7 +622,8 @@ int main (int argc, char * argv[]) try
     cin >> convSpeed; cout << endl;
     cout << "Normal mode(1) or test mode(2):" << endl;
     cin >> mode;
-	if (mode == 2)
+    cout << workSpace[0] << " - " << workSpace[1] << " - " << workSpace[2] << " - " << workSpace[3] << endl;
+    if (mode == 2)
 		testmode(camPlace, workSpace);
     std::thread t1([&]()
     {
